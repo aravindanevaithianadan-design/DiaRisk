@@ -1,0 +1,1574 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description"
+        content="AI-Based Diabetes Complication Risk Prediction App — a guided screening and risk assessment prototype.">
+    <title>Diabetes Risk AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Manrope:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-shell" id="appShell">
+        <aside class="sidebar" aria-label="Primary navigation">
+            <div class="brand-lockup">
+                <div class="brand-mark" aria-hidden="true"><span></span><i></i></div>
+                <div><strong>Diabetes Risk</strong><em>AI</em></div>
+            </div>
+            <div class="sidebar-caption">Clinical workspace</div>
+            <nav class="nav-list">
+                <button class="nav-item active" data-view="dashboard"><span class="nav-icon">⌂</span><span
+                        data-i18n="dashboard">Dashboard</span></button>
+                <button class="nav-item" data-view="assessment"><span class="nav-icon">＋</span><span
+                        data-i18n="newAssessment">New assessment</span></button>
+                <button class="nav-item" data-view="participants"><span class="nav-icon">◉</span><span
+                        data-i18n="participants">Participants</span></button>
+                <button class="nav-item" data-view="reports"><span class="nav-icon">▤</span><span
+                        data-i18n="reports">Reports</span></button>
+                <button class="nav-item" data-view="education"><span class="nav-icon">▱</span><span
+                        data-i18n="education">Education</span></button>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="nav-item muted-action" data-action="soon"><span class="nav-icon">⚙</span><span
+                        data-i18n="settings">Settings</span></button>
+                <div class="profile-mini"><span class="avatar">DR</span><span><b>Dr. R. Meena</b><small>Research
+                            clinician</small></span><span class="dots">•••</span></div>
+            </div>
+        </aside>
+
+        <main class="main-canvas">
+            <header class="topbar">
+                <button class="mobile-menu" id="mobileMenu" aria-label="Open navigation">☰</button>
+                <div class="breadcrumb"><span class="eyebrow">RESEARCH WORKSPACE</span><span
+                        class="crumb-separator">/</span><span id="breadcrumbText">Dashboard</span></div>
+                <div class="top-actions">
+                    <button class="language-toggle" id="languageToggle"
+                        aria-label="Toggle language"><b>EN</b><span>/</span><span>தமிழ்</span></button>
+                    <button class="icon-button" id="themeToggle" aria-label="Toggle theme">☾</button>
+                    <button class="help-button" data-action="notice">?</button>
+                </div>
+            </header>
+            <div id="viewRoot" class="view-root"></div>
+        </main>
+
+        <aside class="context-panel" id="contextPanel" aria-label="Assessment context">
+            <div class="context-top"><span class="eyebrow">ASSESSMENT CONTEXT</span><button id="collapseContext"
+                    class="context-close" aria-label="Collapse context panel">×</button></div>
+            <div id="contextContent"></div>
+        </aside>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <style>
+        /* Quiet Clinical Atelier — warm research paper, ink navy, mineral teal, editorial hierarchy. */
+        :root {
+            --bg: #f5f3ee;
+            --surface: #fffdfa;
+            --surface-2: #edeae3;
+            --ink: #17324d;
+            --ink-2: #4b5d6b;
+            --muted: #83909a;
+            --line: #dfe2df;
+            --teal: #2c8a83;
+            --teal-soft: #dcefeb;
+            --amber: #b97929;
+            --amber-soft: #f7e9d2;
+            --coral: #b84f4f;
+            --coral-soft: #f6dddd;
+            --shadow: 0 20px 60px rgba(24, 47, 64, .07);
+            --radius: 18px;
+            --ease: cubic-bezier(.23, 1, .32, 1)
+        }
+
+        html.dark {
+            --bg: #14222b;
+            --surface: #1b2d37;
+            --surface-2: #203744;
+            --ink: #f5f2ea;
+            --ink-2: #b9c9cd;
+            --muted: #8da1a8;
+            --line: #34505a;
+            --teal: #62c2b1;
+            --teal-soft: #254b4b;
+            --amber: #e6aa5a;
+            --amber-soft: #4e3a24;
+            --coral: #f08383;
+            --coral-soft: #4c2b32;
+            --shadow: 0 22px 80px rgba(0, 0, 0, .2)
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: Manrope, system-ui, sans-serif;
+            font-size: 14px;
+            line-height: 1.55
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font: inherit
+        }
+
+        button {
+            border: 0;
+            background: none;
+            color: inherit
+        }
+
+        button:not(:disabled) {
+            cursor: pointer
+        }
+
+        .app-shell {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 242px minmax(0, 1fr) 292px
+        }
+
+        .sidebar {
+            background: var(--ink);
+            color: #eff3ee;
+            padding: 28px 18px 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh
+        }
+
+        .brand-lockup {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 0 10px 34px
+        }
+
+        .brand-lockup strong {
+            display: block;
+            font-family: "DM Serif Display", serif;
+            font-size: 18px;
+            font-weight: 400;
+            letter-spacing: .01em
+        }
+
+        .brand-lockup em {
+            font-style: normal;
+            font-size: 10px;
+            letter-spacing: .2em;
+            color: #83d2c2
+        }
+
+        .brand-mark {
+            position: relative;
+            width: 32px;
+            height: 32px;
+            border: 1.5px solid #79c8bb;
+            border-radius: 50%;
+            display: grid;
+            place-items: center
+        }
+
+        .brand-mark:before,
+        .brand-mark:after {
+            content: "";
+            position: absolute;
+            background: #79c8bb
+        }
+
+        .brand-mark:before {
+            width: 13px;
+            height: 1px
+        }
+
+        .brand-mark:after {
+            width: 1px;
+            height: 13px
+        }
+
+        .brand-mark span {
+            position: absolute;
+            width: 7px;
+            height: 10px;
+            border: 1.5px solid #79c8bb;
+            border-radius: 8px 2px 8px 2px;
+            transform: rotate(35deg);
+            top: 4px;
+            right: 3px
+        }
+
+        .sidebar-caption,
+        .eyebrow {
+            font-size: 10px;
+            letter-spacing: .15em;
+            text-transform: uppercase;
+            font-weight: 800;
+            color: var(--muted)
+        }
+
+        .sidebar-caption {
+            color: #89a3a7;
+            padding: 0 12px 12px
+        }
+
+        .nav-list {
+            display: grid;
+            gap: 4px
+        }
+
+        .nav-item {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-align: left;
+            padding: 12px;
+            border-radius: 10px;
+            color: #abc0c1;
+            transition: background .2s var(--ease), color .2s var(--ease), transform .2s var(--ease)
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, .08);
+            color: #fff
+        }
+
+        .nav-item.active {
+            background: #2d686a;
+            color: #fff
+        }
+
+        .nav-icon {
+            font-size: 16px;
+            width: 18px;
+            text-align: center;
+            color: #87c8bd
+        }
+
+        .sidebar-footer {
+            margin-top: auto
+        }
+
+        .muted-action {
+            margin-bottom: 18px
+        }
+
+        .profile-mini {
+            border-top: 1px solid rgba(255, 255, 255, .12);
+            padding: 18px 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 9px
+        }
+
+        .profile-mini b,
+        .profile-mini small {
+            display: block
+        }
+
+        .profile-mini b {
+            font-size: 11px;
+            color: #f3f1e8
+        }
+
+        .profile-mini small {
+            font-size: 10px;
+            color: #91a9ad;
+            margin-top: 2px
+        }
+
+        .avatar {
+            display: grid;
+            place-items: center;
+            background: #d8eee8;
+            color: #246964;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            font-size: 10px;
+            font-weight: 800
+        }
+
+        .dots {
+            margin-left: auto;
+            color: #789198;
+            letter-spacing: 2px
+        }
+
+        .main-canvas {
+            min-width: 0;
+            min-height: 100vh;
+            background: var(--bg)
+        }
+
+        .topbar {
+            height: 74px;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 34px;
+            position: sticky;
+            top: 0;
+            background: color-mix(in srgb, var(--bg) 92%, transparent);
+            backdrop-filter: blur(16px);
+            z-index: 5
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--ink-2);
+            font-size: 12px
+        }
+
+        .crumb-separator {
+            color: var(--muted)
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 11px
+        }
+
+        .language-toggle {
+            font-size: 11px;
+            padding: 7px 10px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            color: var(--ink-2)
+        }
+
+        .language-toggle b {
+            color: var(--teal)
+        }
+
+        .icon-button,
+        .help-button,
+        .context-close {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--line);
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            color: var(--ink-2);
+            transition: all .2s var(--ease)
+        }
+
+        .icon-button:hover,
+        .help-button:hover,
+        .context-close:hover {
+            border-color: var(--teal);
+            color: var(--teal);
+            transform: translateY(-1px)
+        }
+
+        .help-button {
+            font-weight: 800;
+            font-size: 12px
+        }
+
+        .mobile-menu {
+            display: none
+        }
+
+        .view-root {
+            max-width: 1050px;
+            margin: 0 auto;
+            padding: 50px 42px 80px
+        }
+
+        .context-panel {
+            border-left: 1px solid var(--line);
+            padding: 34px 24px;
+            background: var(--surface);
+            transition: transform .25s var(--ease)
+        }
+
+        .context-panel.collapsed {
+            transform: translateX(100%);
+            position: fixed;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 292px;
+            z-index: 20;
+            box-shadow: var(--shadow)
+        }
+
+        .context-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px
+        }
+
+        .context-close {
+            font-size: 20px;
+            border: 0;
+            width: 28px;
+            height: 28px
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1.25fr .75fr;
+            gap: 30px;
+            align-items: stretch
+        }
+
+        .hero-panel {
+            padding: 38px 0 30px
+        }
+
+        .hero-panel h1 {
+            font: 400 clamp(42px, 5vw, 68px)/.98 "DM Serif Display", serif;
+            letter-spacing: -.035em;
+            margin: 12px 0 22px;
+            max-width: 630px
+        }
+
+        .hero-panel p {
+            font-size: 16px;
+            line-height: 1.7;
+            color: var(--ink-2);
+            max-width: 560px;
+            margin: 0 0 26px
+        }
+
+        .hero-kicker {
+            color: var(--teal);
+            font-weight: 800;
+            letter-spacing: .12em;
+            font-size: 11px;
+            text-transform: uppercase
+        }
+
+        .hero-art {
+            min-height: 330px;
+            border-radius: 4px;
+            background: linear-gradient(145deg, rgba(44, 138, 131, .16), rgba(255, 253, 250, .35)), url('/manus-storage/diabetes-risk-ai-texture_686c1f27.png') center/cover;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(44, 138, 131, .3)
+        }
+
+        .hero-art:before {
+            content: "";
+            position: absolute;
+            inset: 22px;
+            border: 1px solid rgba(44, 138, 131, .35);
+            border-radius: 50%;
+            width: 220px;
+            height: 220px;
+            margin: auto;
+            box-shadow: 0 0 0 22px rgba(44, 138, 131, .04), 0 0 0 46px rgba(44, 138, 131, .035)
+        }
+
+        .hero-art:after {
+            content: "SCREENING SIGNAL MAP  /  01";
+            position: absolute;
+            bottom: 22px;
+            left: 24px;
+            color: var(--teal);
+            font-size: 10px;
+            letter-spacing: .15em;
+            text-transform: uppercase
+        }
+
+        .button-primary {
+            background: var(--teal);
+            color: #fff;
+            border-radius: 8px;
+            padding: 13px 18px;
+            font-weight: 800;
+            transition: transform .16s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease);
+            box-shadow: 0 7px 16px rgba(44, 138, 131, .18)
+        }
+
+        .button-primary:hover {
+            background: #24736e;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(44, 138, 131, .22)
+        }
+
+        .button-primary:active {
+            transform: scale(.97)
+        }
+
+        .button-secondary {
+            padding: 13px 18px;
+            color: var(--ink-2);
+            font-weight: 700
+        }
+
+        .button-secondary:hover {
+            color: var(--teal)
+        }
+
+        .notice {
+            border-left: 3px solid var(--teal);
+            padding: 12px 16px;
+            background: var(--surface-2);
+            color: var(--ink-2);
+            font-size: 12px;
+            max-width: 620px
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            margin: 44px 0 16px
+        }
+
+        .section-heading h2 {
+            font: 400 30px "DM Serif Display", serif;
+            margin: 0;
+            letter-spacing: -.02em
+        }
+
+        .section-heading p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 12px
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px
+        }
+
+        .kpi-card,
+        .panel-card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            box-shadow: none;
+            position: relative
+        }
+
+        .kpi-card:after,
+        .panel-card:after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--teal), transparent);
+            opacity: .24
+        }
+
+        .kpi-card {
+            padding: 18px;
+            border-top: 2px solid var(--line)
+        }
+
+        .kpi-card .eyebrow {
+            display: block;
+            margin-bottom: 16px
+        }
+
+        .kpi-value {
+            font: 400 34px "DM Serif Display", serif
+        }
+
+        .kpi-delta {
+            font-size: 11px;
+            color: var(--teal);
+            font-weight: 800;
+            margin-top: 7px
+        }
+
+        .assessment-list {
+            display: grid;
+            gap: 8px
+        }
+
+        .assessment-row {
+            display: grid;
+            grid-template-columns: 1.3fr .5fr .9fr .8fr 1fr;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 17px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--line);
+            border-radius: 0;
+            position: relative
+        }
+
+        .assessment-row:not(.header):before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--teal);
+            opacity: .35
+        }
+
+        .assessment-list {
+            border-top: 1px solid var(--line);
+            border-bottom: 1px solid var(--line)
+        }
+
+        .assessment-row.header {
+            background: transparent;
+            border: 0;
+            padding: 0 17px 6px;
+            color: var(--muted);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .12em;
+            font-weight: 800
+        }
+
+        .person {
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .person-mark {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--teal-soft);
+            color: var(--teal);
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            font-size: 10px
+        }
+
+        .person strong {
+            display: block;
+            font-size: 12px
+        }
+
+        .person small {
+            display: block;
+            color: var(--muted);
+            font-size: 10px
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .06em
+        }
+
+        .status-pill:before {
+            content: "";
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor
+        }
+
+        .status-pill.completed {
+            color: var(--teal)
+        }
+
+        .status-pill.progress {
+            color: var(--amber)
+        }
+
+        .risk-text {
+            font-size: 11px;
+            font-weight: 800
+        }
+
+        .risk-low {
+            color: var(--teal)
+        }
+
+        .risk-moderate {
+            color: var(--amber)
+        }
+
+        .risk-high {
+            color: var(--coral)
+        }
+
+        .context-card {
+            border-top: 1px solid var(--line);
+            padding: 20px 0;
+            position: relative
+        }
+
+        .context-card:before {
+            content: "//";
+            position: absolute;
+            right: 0;
+            top: 20px;
+            color: var(--teal);
+            font-size: 10px;
+            letter-spacing: .14em
+        }
+
+        .context-card:first-of-type {
+            border-top: 0;
+            padding-top: 0
+        }
+
+        .context-card:first-of-type:before {
+            top: 0
+        }
+
+        .context-card h3 {
+            font: 400 22px "DM Serif Display", serif;
+            margin: 7px 0 5px
+        }
+
+        .context-card p {
+            margin: 0;
+            color: var(--ink-2);
+            font-size: 12px;
+            line-height: 1.6
+        }
+
+        .progress-track {
+            height: 5px;
+            background: var(--surface-2);
+            border-radius: 99px;
+            overflow: hidden;
+            margin: 14px 0 7px
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--teal);
+            border-radius: inherit;
+            transition: width .3s var(--ease)
+        }
+
+        .progress-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: var(--muted)
+        }
+
+        .summary-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--line);
+            font-size: 11px
+        }
+
+        .summary-line:last-child {
+            border-bottom: 0
+        }
+
+        .summary-line span {
+            color: var(--muted)
+        }
+
+        .assessment-layout {
+            max-width: 930px
+        }
+
+        .assessment-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 38px
+        }
+
+        .assessment-title h1 {
+            font: 400 42px "DM Serif Display", serif;
+            margin: 7px 0 0
+        }
+
+        .assessment-title p {
+            color: var(--ink-2);
+            margin: 6px 0 0
+        }
+
+        .step-count {
+            font-size: 12px;
+            color: var(--muted);
+            text-align: right
+        }
+
+        .step-count strong {
+            display: block;
+            font: 400 36px "DM Serif Display", serif;
+            color: var(--ink)
+        }
+
+        .conversation {
+            max-width: 720px;
+            margin: 0 auto
+        }
+
+        .system-note {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            color: var(--ink-2);
+            font-size: 12px;
+            margin-bottom: 20px
+        }
+
+        .system-orb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--teal-soft);
+            color: var(--teal);
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            flex: none
+        }
+
+        .question-card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 28px;
+            box-shadow: 0 14px 40px rgba(24, 47, 64, .06);
+            animation: rise .28s var(--ease);
+            position: relative
+        }
+
+        .question-card:before {
+            content: "RECORD ENTRY";
+            position: absolute;
+            right: 24px;
+            top: 24px;
+            color: var(--muted);
+            font-size: 9px;
+            letter-spacing: .15em;
+            font-weight: 800
+        }
+
+        .question-label {
+            color: var(--teal);
+            font-size: 10px;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            font-weight: 800
+        }
+
+        .question-card h2 {
+            font: 400 clamp(28px, 4vw, 42px)/1.1 "DM Serif Display", serif;
+            margin: 11px 0 10px;
+            letter-spacing: -.02em
+        }
+
+        .question-card>p {
+            color: var(--ink-2);
+            margin: 0 0 22px
+        }
+
+        .answer-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px
+        }
+
+        .answer-button {
+            border: 1px solid var(--line);
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: left;
+            color: var(--ink-2);
+            font-weight: 700;
+            transition: all .2s var(--ease)
+        }
+
+        .answer-button:hover {
+            border-color: var(--teal);
+            color: var(--teal);
+            transform: translateY(-2px)
+        }
+
+        .answer-button.selected {
+            background: var(--teal-soft);
+            border-color: var(--teal);
+            color: var(--teal)
+        }
+
+        .answer-button .answer-index {
+            display: block;
+            color: var(--muted);
+            font-size: 10px;
+            margin-bottom: 5px
+        }
+
+        .text-input,
+        .select-input,
+        .textarea-input {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 14px;
+            color: var(--ink);
+            outline: none
+        }
+
+        .text-input:focus,
+        .select-input:focus,
+        .textarea-input:focus {
+            border-color: var(--teal);
+            box-shadow: 0 0 0 3px var(--teal-soft)
+        }
+
+        .textarea-input {
+            min-height: 105px;
+            resize: vertical
+        }
+
+        .conversation-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 18px
+        }
+
+        .back-button {
+            color: var(--ink-2);
+            padding: 12px 4px;
+            font-weight: 700;
+            min-height: 44px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent
+        }
+
+        .back-button:hover {
+            color: var(--teal)
+        }
+
+        .continue-button {
+            background: var(--teal);
+            color: #fff;
+            border-radius: 9px;
+            padding: 13px 20px;
+            font-weight: 800;
+            min-height: 46px;
+            min-width: 128px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            transition: transform .16s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease), opacity .2s var(--ease);
+            box-shadow: 0 7px 16px rgba(44, 138, 131, .18)
+        }
+
+        .continue-button:hover,
+        .continue-button.ready {
+            background: #24736e;
+            box-shadow: 0 10px 20px rgba(44, 138, 131, .22);
+            transform: translateY(-1px)
+        }
+
+        .continue-button:active {
+            transform: scale(.96)
+        }
+
+        .continue-button:disabled {
+            opacity: .42;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none
+        }
+
+        .review-grid,
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1.1fr .9fr;
+            gap: 16px
+        }
+
+        .panel-card {
+            padding: 22px
+        }
+
+        .panel-card h3 {
+            font: 400 23px "DM Serif Display", serif;
+            margin: 0 0 14px
+        }
+
+        .review-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--line);
+            font-size: 12px
+        }
+
+        .review-item:last-child {
+            border-bottom: 0
+        }
+
+        .review-item span {
+            color: var(--muted)
+        }
+
+        .risk-card {
+            position: relative;
+            overflow: hidden
+        }
+
+        .risk-card:before {
+            content: "";
+            position: absolute;
+            right: -30px;
+            top: -30px;
+            width: 130px;
+            height: 130px;
+            border: 1px solid var(--teal);
+            border-radius: 50%;
+            opacity: .25
+        }
+
+        .risk-score {
+            font: 400 58px "DM Serif Display", serif
+        }
+
+        .risk-level {
+            display: inline-flex;
+            padding: 6px 9px;
+            border-radius: 5px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .1em
+        }
+
+        .risk-level.low {
+            background: var(--teal-soft);
+            color: var(--teal)
+        }
+
+        .risk-level.moderate {
+            background: var(--amber-soft);
+            color: var(--amber)
+        }
+
+        .risk-level.high {
+            background: var(--coral-soft);
+            color: var(--coral)
+        }
+
+        .recommendation {
+            margin-top: 18px;
+            background: var(--surface-2);
+            padding: 13px;
+            font-size: 12px;
+            color: var(--ink-2)
+        }
+
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px
+        }
+
+        .video-card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            overflow: hidden
+        }
+
+        .video-art {
+            height: 110px;
+            background: linear-gradient(135deg, var(--teal-soft), var(--surface-2));
+            position: relative
+        }
+
+        .video-art:after {
+            content: "▶";
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 34px;
+            height: 34px;
+            border: 1px solid var(--teal);
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            color: var(--teal);
+            font-size: 12px
+        }
+
+        .video-copy {
+            padding: 14px
+        }
+
+        .video-copy strong {
+            display: block;
+            font: 400 18px "DM Serif Display", serif;
+            margin-bottom: 5px
+        }
+
+        .video-copy small {
+            color: var(--muted)
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 13px
+        }
+
+        .field label {
+            display: block;
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--ink-2);
+            margin-bottom: 6px
+        }
+
+        .field.full {
+            grid-column: 1/-1
+        }
+
+        .empty-state {
+            padding: 48px 22px;
+            text-align: center;
+            background: var(--surface);
+            border: 1px dashed var(--line);
+            border-radius: 18px;
+            color: var(--ink-2)
+        }
+
+        .empty-state h2 {
+            font: 400 28px "DM Serif Display", serif;
+            color: var(--ink);
+            margin: 0 0 8px
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translate(-50%, 20px);
+            opacity: 0;
+            pointer-events: none;
+            background: var(--ink);
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: 9px;
+            font-size: 12px;
+            box-shadow: var(--shadow);
+            transition: opacity .2s var(--ease), transform .2s var(--ease);
+            z-index: 100
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0)
+        }
+
+        @keyframes rise {
+            from {
+                opacity: 0;
+                transform: translateY(8px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        @media(max-width:1150px) {
+            .app-shell {
+                grid-template-columns: 220px minmax(0, 1fr)
+            }
+
+            .context-panel {
+                display: none
+            }
+
+            .view-root {
+                padding: 42px 32px 70px
+            }
+
+            .hero-grid {
+                grid-template-columns: 1fr .7fr
+            }
+        }
+
+        @media(max-width:820px) {
+            .app-shell {
+                display: block
+            }
+
+            .sidebar {
+                position: fixed;
+                inset: 0 auto 0 0;
+                width: 250px;
+                transform: translateX(-102%);
+                transition: transform .25s var(--ease);
+                z-index: 30;
+                box-shadow: var(--shadow)
+            }
+
+            .sidebar.open {
+                transform: translateX(0)
+            }
+
+            .main-canvas {
+                min-height: 100vh
+            }
+
+            .topbar {
+                height: 66px;
+                padding: 0 18px
+            }
+
+            .mobile-menu {
+                display: block;
+                font-size: 20px;
+                margin-right: 8px
+            }
+
+            .breadcrumb {
+                flex: 1
+            }
+
+            .breadcrumb .eyebrow,
+            .crumb-separator {
+                display: none
+            }
+
+            .top-actions {
+                gap: 7px
+            }
+
+            .view-root {
+                padding: 30px 18px 90px
+            }
+
+            .hero-grid {
+                display: block
+            }
+
+            .hero-panel {
+                padding-top: 10px
+            }
+
+            .hero-panel h1 {
+                font-size: 48px
+            }
+
+            .hero-art {
+                min-height: 170px;
+                margin-top: 24px
+            }
+
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr)
+            }
+
+            .assessment-row {
+                grid-template-columns: 1.2fr .7fr .8fr
+            }
+
+            .assessment-row.header {
+                display: none
+            }
+
+            .assessment-row> :nth-child(3),
+            .assessment-row> :nth-child(5) {
+                display: none
+            }
+
+            .review-grid,
+            .result-grid {
+                grid-template-columns: 1fr
+            }
+
+            .video-grid {
+                grid-template-columns: 1fr 1fr
+            }
+
+            .assessment-head {
+                align-items: flex-start
+            }
+
+            .assessment-title h1 {
+                font-size: 34px
+            }
+
+            .step-count strong {
+                font-size: 30px
+            }
+        }
+
+        @media(max-width:520px) {
+            .hero-panel h1 {
+                font-size: 42px
+            }
+
+            .hero-panel p {
+                font-size: 14px
+            }
+
+            .section-heading {
+                margin-top: 32px
+            }
+
+            .section-heading h2 {
+                font-size: 27px
+            }
+
+            .kpi-card {
+                padding: 14px
+            }
+
+            .kpi-value {
+                font-size: 30px
+            }
+
+            .assessment-row {
+                padding: 13px
+            }
+
+            .question-card {
+                padding: 21px 17px;
+                border-radius: 16px
+            }
+
+            .question-card h2 {
+                font-size: 31px
+            }
+
+            .answer-grid,
+            .form-grid,
+            .video-grid {
+                grid-template-columns: 1fr
+            }
+
+            .conversation-footer {
+                position: sticky;
+                bottom: 0;
+                background: var(--bg);
+                padding: 13px 0 4px;
+                z-index: 3
+            }
+
+            .topbar {
+                padding: 0 14px
+            }
+
+            .language-toggle {
+                font-size: 10px
+            }
+
+            .help-button {
+                display: none
+            }
+        }
+
+        @media(prefers-reduced-motion:reduce) {
+
+            *,
+            *:before,
+            *:after {
+                animation: none !important;
+                transition: none !important
+            }
+        }
+    </style>
+    <script>
+        /* Quiet Clinical Atelier — the interaction layer keeps one question in focus and treats risk as screening context, never diagnosis. */
+        const $ = (selector, root = document) => root.querySelector(selector);
+        const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+
+        const translations = {
+            en: {
+                dashboard: 'Dashboard', newAssessment: 'New assessment', participants: 'Participants', reports: 'Reports', education: 'Education', settings: 'Settings',
+                dashboardTitle: 'A clearer record of the signals that matter.', dashboardSub: 'Continue your participant assessments with a calm, structured review workspace.',
+                startAssessment: 'Start new assessment', previous: 'View previous assessments', recent: 'Recent assessments', recentSub: 'The latest participant records in your workspace.', total: 'Total participants', completed: 'Completed assessments', inProgress: 'In progress', today: "Today's assessments",
+                section: 'Section', question: 'Question', continue: 'Continue', back: 'Back', save: 'Save assessment', review: 'Review answers', assessment: 'Assessment', demo: 'Demo mode', noData: 'No participant records yet', noDataSub: 'Start a new assessment to build your research workspace.',
+                disclaimer: 'This assessment provides a screening/risk indication based on entered information. It is not a medical diagnosis and should not replace evaluation by a qualified healthcare professional.',
+                participant: 'Participant', age: 'Age', sex: 'Sex', education: 'Education', occupation: 'Occupation', income: 'Monthly family income', marital: 'Marital status', area: 'Area', duration: 'Duration of diabetes', checkup: 'Health checkup frequency', medication: 'Medication adherence', activity: 'Regular physical activity', clinical: 'Clinical information', neuropathy: 'Neuropathy', retinopathy: 'Retinopathy', nephropathy: 'Nephropathy', riskAssessment: 'Risk assessment', recommendation: 'Recommendation',
+                low: 'LOW RISK', moderate: 'MODERATE RISK', high: 'HIGH RISK', analysis: 'AI-style analysis', educationTitle: 'Preventive education', perception: 'App perception', finalReport: 'Final report',
+                required: 'Please choose an answer before continuing.', saved: 'Assessment saved locally.', soon: 'This prototype area is not connected yet.', notice: 'This is a frontend-only research prototype. Do not enter identifiable participant data.'
+            },
+            ta: {
+                dashboard: 'டாஷ்போர்டு', newAssessment: 'புதிய மதிப்பீடு', participants: 'பங்கேற்பாளர்கள்', reports: 'அறிக்கைகள்', education: 'கல்வி', settings: 'அமைப்புகள்',
+                dashboardTitle: 'முக்கியமான அறிகுறிகளின் தெளிவான பதிவு.', dashboardSub: 'அமைதியான, கட்டமைக்கப்பட்ட பணியிடத்தில் பங்கேற்பாளர் மதிப்பீடுகளைத் தொடருங்கள்.',
+                startAssessment: 'புதிய மதிப்பீட்டைத் தொடங்கவும்', previous: 'முந்தைய மதிப்பீடுகளைக் காண்க', recent: 'சமீபத்திய மதிப்பீடுகள்', recentSub: 'உங்கள் பணியிடத்தில் உள்ள சமீபத்திய பங்கேற்பாளர் பதிவுகள்.', total: 'மொத்த பங்கேற்பாளர்கள்', completed: 'முடிக்கப்பட்ட மதிப்பீடுகள்', inProgress: 'நடைபெறுகிறது', today: 'இன்றைய மதிப்பீடுகள்',
+                section: 'பகுதி', question: 'கேள்வி', continue: 'தொடரவும்', back: 'பின்செல்லவும்', save: 'மதிப்பீட்டைச் சேமிக்கவும்', review: 'பதில்களை மதிப்பாய்வு செய்க', assessment: 'மதிப்பீடு', demo: 'டெமோ நிலை', noData: 'இன்னும் பங்கேற்பாளர் பதிவுகள் இல்லை', noDataSub: 'உங்கள் ஆய்வு பணியிடத்தை உருவாக்க புதிய மதிப்பீட்டைத் தொடங்குங்கள்.',
+                disclaimer: 'இந்த மதிப்பீடு உள்ளிடப்பட்ட தகவல்களின் அடிப்படையில் திரையிடல்/ஆபத்து அறிகுறியை வழங்குகிறது. இது மருத்துவ நோயறிதல் அல்ல; தகுதி பெற்ற சுகாதார நிபுணரின் மதிப்பீட்டை மாற்றாது.',
+                participant: 'பங்கேற்பாளர்', age: 'வயது', sex: 'பாலினம்', education: 'கல்வி', occupation: 'தொழில்', income: 'மாதாந்திர குடும்ப வருமானம்', marital: 'திருமண நிலை', area: 'பகுதி', duration: 'நீரிழிவு கால அளவு', checkup: 'சுகாதார பரிசோதனை இடைவெளி', medication: 'மருந்து ஒழுங்கு', activity: 'தினசரி உடற்பயிற்சி', clinical: 'உடல்நிலை தகவல்', neuropathy: 'நரம்பு பாதிப்பு', retinopathy: 'கண் பாதிப்பு', nephropathy: 'சிறுநீரக பாதிப்பு', riskAssessment: 'ஆபத்து மதிப்பீடு', recommendation: 'பரிந்துரை',
+                low: 'குறைந்த ஆபத்து', moderate: 'மிதமான ஆபத்து', high: 'அதிக ஆபத்து', analysis: 'AI பாணி விளக்கம்', educationTitle: 'தடுப்பு கல்வி', perception: 'செயலி கருத்து', finalReport: 'இறுதி அறிக்கை',
+                required: 'தொடர்வதற்கு முன் பதிலைத் தேர்ந்தெடுக்கவும்.', saved: 'மதிப்பீடு உள்ளூரில் சேமிக்கப்பட்டது.', soon: 'இந்த முன்மாதிரி பகுதி இன்னும் இணைக்கப்படவில்லை.', notice: 'இது முன்புற ஆராய்ச்சி முன்மாதிரி மட்டுமே. அடையாளம் காணக்கூடிய பங்கேற்பாளர் தகவலை உள்ளிட வேண்டாம்.'
+            }
+        };
+
+        const symptomSets = {
+            neuropathy: ['Does the participant experience pain in their legs or feet?', 'Do they feel numbness in their feet?', 'Do they experience tingling or prickling in their feet?', 'Do they feel a burning sensation in their feet?', 'Do they have loss of sensation in their feet?', 'Do they feel increased sensitivity to touch in their feet?', 'Do they experience muscle weakness in their legs?', 'Do they have difficulty walking due to foot discomfort?', 'Do they experience sharp or stabbing pain in their feet?', 'Do they notice reduced ability to feel temperature changes in their feet?'],
+            retinopathy: ['Does the participant experience blurred vision?', 'Do they have difficulty seeing clearly at night?', 'Do they see dark spots or floaters?', 'Do they experience frequent changes in vision?', 'Do they have difficulty reading small text?', 'Do they notice distorted or wavy vision?', 'Do they feel eye strain or discomfort frequently?', 'Do they experience sudden loss of vision?', 'Do they notice difficulty recognizing faces from a distance?', 'Do their eyes become sensitive to bright light?'],
+            nephropathy: ['Does the participant have swelling in their feet or ankles?', 'Do they experience frequent urination at night?', 'Do they notice foamy or bubbly urine?', 'Do they feel persistent fatigue or weakness?', 'Do they experience loss of appetite?', 'Do they have nausea or vomiting frequently?', 'Do they experience difficulty concentrating or confusion?', 'Do they notice dry and itchy skin?', 'Do they experience shortness of breath without exertion?', 'Do they notice reduced urine output?']
+        };
+
+        const state = {
+            view: 'dashboard', language: localStorage.getItem('language') || 'en', theme: localStorage.getItem('theme') || 'light',
+            assessment: null, step: 0, currentQuestions: [], completed: JSON.parse(localStorage.getItem('diabetesAssessments') || '[]')
+        };
+
+        const participantQuestions = [
+            { id: 'participantNumber', label: 'What is the participant number?', type: 'text', placeholder: 'e.g. P-025' },
+            { id: 'age', label: 'What is the participant’s age in years?', type: 'number', placeholder: 'Enter age' },
+            { id: 'sex', label: 'What is the participant’s sex?', type: 'choice', options: ['Male', 'Female'] },
+            { id: 'education', label: 'What is the participant’s highest level of education?', type: 'choice', options: ['Illiterate', 'Primary', 'High school', 'Higher secondary', 'Graduate'] },
+            { id: 'occupation', label: 'What is the participant’s occupation?', type: 'text', placeholder: 'Enter occupation' },
+            { id: 'income', label: 'What is the monthly family income range?', type: 'choice', options: ['≤ ₹6,999', '₹7,000–10,999', '₹11,000–18,999', '₹19,000–28,999', '₹29,000–38,999', '₹39,000–77,999', '≥ ₹78,000'] },
+            { id: 'marital', label: 'What is the participant’s marital status?', type: 'choice', options: ['Single', 'Married', 'Separated', 'Divorced'] },
+            { id: 'area', label: 'Where does the participant live?', type: 'choice', options: ['Rural', 'Urban'] },
+            { id: 'duration', label: 'How long has the participant had diabetes?', type: 'choice', options: ['Less than 1 year', '1–10 years', '11–20 years', 'More than 20 years'] },
+            { id: 'checkup', label: 'How often does the participant have a health checkup?', type: 'choice', options: ['Once a month', 'Once every 6 months', 'More than a year', 'Never'] },
+            { id: 'medication', label: 'How would you describe medication adherence?', type: 'choice', options: ['Regular', 'Irregular'] },
+            { id: 'drugType', label: 'What type of drug does the participant take?', type: 'choice', options: ['Oral hypoglycemic tablets', 'Insulin injection', 'AYUSH medicines'] },
+            { id: 'dietAdherence', label: 'Does the participant follow the recommended diabetic diet?', type: 'choice', options: ['Yes', 'No'] },
+            { id: 'comorbid', label: 'Does the participant have any co-morbid disease?', type: 'choice', options: ['Yes', 'No'] },
+            { id: 'comorbidType', label: 'If yes, which co-morbid condition(s)? (Hypertension, Heart disease, Ophthalmic disease, Renal disease, Other)', type: 'text', placeholder: 'e.g. Hypertension — leave blank if none' },
+            { id: 'activity', label: 'Does the participant perform regular physical activity?', type: 'choice', options: ['Yes', 'No'] },
+            { id: 'bmi', label: 'What is the participant’s BMI, if available?', type: 'number', placeholder: 'Optional' },
+            { id: 'waistHip', label: 'What is the participant’s waist–hip ratio, if available?', type: 'text', placeholder: 'Optional' },
+            { id: 'bp', label: 'Is there a history of hypertension?', type: 'choice', options: ['Yes', 'No'] }
+        ];
+
+        function t(key) { return translations[state.language][key] || translations.en[key] || key; }
+        function esc(value = '') { return String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char])); }
+        function setView(view) { state.view = view; $$('.nav-item[data-view]').forEach(el => el.classList.toggle('active', el.dataset.view === view)); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        function showToast(message) { const toast = $('#toast'); toast.textContent = message; toast.classList.add('show'); clearTimeout(window.toastTimer); window.toastTimer = setTimeout(() => toast.classList.remove('show'), 2600); }
+        function riskFromScore(score) { return score <= 3 ? 'low' : score <= 6 ? 'moderate' : 'high'; }
+        function riskLabel(level) { return t(level); }
+        function freshAssessment() { return { participant: {}, diabetes: {}, clinical: {}, neuropathy: [], retinopathy: [], nephropathy: [], doctorReview: {}, perception: {}, createdAt: new Date().toISOString() }; }
+        function applyTheme() { document.documentElement.classList.toggle('dark', state.theme === 'dark'); $('#themeToggle').textContent = state.theme === 'dark' ? '☀' : '☾'; }
+        function updateLanguage() { localStorage.setItem('language', state.language); $('#languageToggle').innerHTML = state.language === 'en' ? '<b>EN</b><span>/</span><span>தமிழ்</span>' : '<span>EN</span><span>/</span><b>தமிழ்</b>'; render(); }
+        function riskBadge(level) { return `<span class="risk-level ${level}">${riskLabel(level)}</span>`; }
+        function scoreFor(type) { const answers = state.assessment?.[type] || []; return answers.filter(Boolean).length; }
+        function assessmentStatus(a) { return a.completedAt ? 'completed' : 'progress'; }
+
+        function render() {
+            applyTheme();
+            $('#breadcrumbText').textContent = state.view === 'assessment' ? t('assessment') : state.view.charAt(0).toUpperCase() + state.view.slice(1);
+            const root = $('#viewRoot');
+            if (state.view === 'dashboard') root.innerHTML = dashboardView();
+            else if (state.view === 'assessment') root.innerHTML = assessmentView();
+            else if (state.view === 'review') root.innerHTML = reviewView();
+            else if (state.view === 'results') root.innerHTML = resultsView();
+            else if (state.view === 'reports') root.innerHTML = reportsView();
+            else if (state.view === 'education') root.innerHTML = educationView();
+            else if (state.view === 'participants') root.innerHTML = participantsView();
+            else root.innerHTML = emptyView(t('settings'));
+            contextView();
+            bindViewEvents();
+        }
+
+        function dashboardView() {
+            const records = state.completed;
+            return `<section class="hero-grid"><div class="hero-panel"><div class="hero-kicker">A guided clinical workspace</div><h1>${t('dashboardTitle')}</h1><p>${t('dashboardSub')}</p><div class="hero-actions"><button class="button-primary" data-action="new">＋ ${t('startAssessment')}</button><button class="button-secondary" data-view="reports">${t('previous')}</button></div><div class="notice" style="margin-top:26px">${t('disclaimer')}</div></div><div class="hero-art" aria-label="Abstract assessment texture"></div></section>
+  <div class="section-heading"><div><h2>Today, in view</h2><p>Research activity at a glance.</p></div><span class="eyebrow">17 AUG 2026</span></div>
+  <div class="kpi-grid"><div class="kpi-card"><span class="eyebrow">${t('total')}</span><div class="kpi-value">${24 + records.length}</div><div class="kpi-delta">+2 this week</div></div><div class="kpi-card"><span class="eyebrow">${t('completed')}</span><div class="kpi-value">${18 + records.filter(a => a.completedAt).length}</div><div class="kpi-delta">75% completion rate</div></div><div class="kpi-card"><span class="eyebrow">${t('inProgress')}</span><div class="kpi-value">${4 + records.filter(a => !a.completedAt).length}</div><div class="kpi-delta" style="color:var(--amber)">Needs review</div></div><div class="kpi-card"><span class="eyebrow">${t('today')}</span><div class="kpi-value">3</div><div class="kpi-delta">Across 2 researchers</div></div></div>
+  <div class="section-heading"><div><h2>${t('recent')}</h2><p>${t('recentSub')}</p></div><button class="button-secondary" data-action="new">＋ New</button></div>${records.length ? assessmentRows(records) : sampleRows()}`;
+        }
+        function sampleRows() { const rows = [['P-024', '58', '16 Aug 2026', 'completed', 'moderate', 'low', 'high'], ['P-023', '64', '15 Aug 2026', 'completed', 'low', 'low', 'moderate'], ['P-022', '51', '15 Aug 2026', 'progress', '—', '—', '—']]; return `<div class="assessment-list"><div class="assessment-row header"><span>Participant</span><span>Age</span><span>Date</span><span>Status</span><span>Screening signals</span></div>${rows.map(r => `<div class="assessment-row"><div class="person"><span class="person-mark">${r[0].slice(-2)}</span><div><strong>${r[0]}</strong><small>Research record</small></div></div><span>${r[1]}</span><span class="muted">${r[2]}</span><span class="status-pill ${r[3] === 'completed' ? 'completed' : 'progress'}">${r[3]}</span><span class="risk-text"><b class="risk-${r[4]}">${r[4]}</b> · <b class="risk-${r[5]}">${r[5]}</b> · <b class="risk-${r[6]}">${r[6]}</b></span></div>`).join('')}</div>`; }
+        function assessmentRows(records) { return `<div class="assessment-list"><div class="assessment-row header"><span>Participant</span><span>Age</span><span>Date</span><span>Status</span><span>Screening signals</span></div>${records.slice(-6).reverse().map(a => { const p = a.participant || {}; return `<div class="assessment-row"><div class="person"><span class="person-mark">${esc(String(p.participantNumber || 'P?').slice(-2))}</span><div><strong>${esc(p.participantNumber || 'Unnamed')}</strong><small>Local prototype record</small></div></div><span>${esc(p.age || '—')}</span><span class="muted">${new Date(a.createdAt).toLocaleDateString()}</span><span class="status-pill ${assessmentStatus(a) === 'completed' ? 'completed' : 'progress'}">${assessmentStatus(a)}</span><span class="risk-text"><b class="risk-${riskFromScore((a.neuropathy || []).filter(Boolean).length)}">${riskFromScore((a.neuropathy || []).filter(Boolean).length)}</b> · <b class="risk-${riskFromScore((a.retinopathy || []).filter(Boolean).length)}">${riskFromScore((a.retinopathy || []).filter(Boolean).length)}</b> · <b class="risk-${riskFromScore((a.nephropathy || []).filter(Boolean).length)}">${riskFromScore((a.nephropathy || []).filter(Boolean).length)}</b></span></div>` }).join('')}</div>`; }
+
+        function startAssessment() { state.assessment = freshAssessment(); state.step = 0; state.currentQuestions = participantQuestions; setView('assessment'); }
+        function questionForStep() { if (state.step < participantQuestions.length) return participantQuestions[state.step]; const offset = state.step - participantQuestions.length; const type = offset < 10 ? 'neuropathy' : offset < 20 ? 'retinopathy' : 'nephropathy'; return { id: `${type}_${offset % 10}`, type: 'symptom', category: type, label: symptomSets[type][offset % 10], options: ['Yes', 'No'] }; }
+        function totalSteps() { return participantQuestions.length + 30; }
+        function currentValue(q) { if (q.type === 'symptom') return state.assessment[q.category][Number(q.id.split('_')[1])]; return state.assessment.participant[q.id] ?? state.assessment.clinical[q.id]; }
+        function setCurrentValue(q, value) { if (q.type === 'symptom') state.assessment[q.category][Number(q.id.split('_')[1])] = value === 'Yes'; else if (['bmi', 'bp'].includes(q.id)) state.assessment.clinical[q.id] = value; else state.assessment.participant[q.id] = value; }
+        function sectionForStep() { if (state.step < participantQuestions.length) return t('participant'); if (state.step < participantQuestions.length + 10) return t('neuropathy'); if (state.step < participantQuestions.length + 20) return t('retinopathy'); return t('nephropathy'); }
+        function assessmentView() { const q = questionForStep(); const val = currentValue(q); const progress = Math.round((state.step / totalSteps()) * 100); const isSymptom = q.type === 'symptom'; const options = q.options || []; return `<div class="assessment-layout"><div class="assessment-head"><div class="assessment-title"><span class="eyebrow">${sectionForStep()}</span><h1>${t('riskAssessment')}</h1><p>One clear prompt at a time. Answers remain editable.</p></div><div class="step-count"><strong>${Math.min(state.step + 1, totalSteps())}</strong> of ${totalSteps()}</div></div><div class="conversation"><div class="system-note"><span class="system-orb">✦</span><span>${isSymptom ? 'Please select the answer that best describes the participant.' : 'Let’s build the participant record carefully, one detail at a time.'}</span></div><article class="question-card"><div class="question-label">${t('question')} ${state.step + 1} · ${sectionForStep()}</div><h2>${isSymptom && state.language === 'ta' ? translateSymptom(q.label) : q.label}</h2><p>${isSymptom ? 'Symptom-based screening question.' : 'Use the participant’s response or available clinical record.'}</p>${q.type === 'choice' || isSymptom ? `<div class="answer-grid">${options.map((option, i) => `<button type="button" class="answer-button ${String(val) === String(option) || (typeof val === 'boolean' && String(val) === (option === 'Yes' ? 'true' : 'false')) ? 'selected' : ''}" data-answer="${esc(option)}"><span class="answer-index">0${i + 1}</span>${option}</button>`).join('')}</div>` : `<input class="text-input" id="currentInput" type="${q.type === 'number' ? 'number' : 'text'}" value="${esc(val || '')}" placeholder="${esc(q.placeholder || '')}" autofocus>`}<div class="conversation-footer"><button type="button" class="back-button" data-action="back">← ${t('back')}</button><button type="button" class="continue-button ${val != null && val !== '' ? 'ready' : ''}" data-action="continue" ${val == null || val === '' ? 'disabled' : ''}>${state.step === totalSteps() - 1 ? t('review') : t('continue')} →</button></div></article><div style="margin-top:20px"><div class="progress-track"><div class="progress-bar" style="width:${progress}%"></div></div><div class="progress-meta"><span>${sectionForStep()}</span><span>${progress}% complete</span></div></div></div></div>`; }
+        function translateSymptom(text) {
+            const map = {
+                'Does the participant experience pain in their legs or feet?': 'உங்கள் கால்களில் அல்லது பாதங்களில் வலி உள்ளதா?',
+                'Do they feel numbness in their feet?': 'உங்கள் பாதங்களில் உணர்வு குறைவு உள்ளதா?',
+                'Do they experience tingling or prickling in their feet?': 'கால்களில் முள் குத்தும் போன்ற சுழல் உணர்வு உள்ளதா?',
+                'Do they feel a burning sensation in their feet?': 'கால்களில் எரியும் உணர்வு ஏற்படுகிறதா?',
+                'Do they have loss of sensation in their feet?': 'கால்களில் உணர்வு இழப்பு உள்ளதா?',
+                'Do they feel increased sensitivity to touch in their feet?': 'தொடும்போது அதிக உணர்வு ஏற்படுகிறதா?',
+                'Do they experience muscle weakness in their legs?': 'கால்களில் தசை பலவீனம் உள்ளதா?',
+                'Do they have difficulty walking due to foot discomfort?': 'கால்களில் உள்ள பிரச்சினைகளால் நடக்க சிரமமா?',
+                'Do they experience sharp or stabbing pain in their feet?': 'கூர்மையான வலி ஏற்படுகிறதா?',
+                'Do they notice reduced ability to feel temperature changes in their feet?': 'வெப்பநிலை மாற்றத்தை உணர சிரமமா?',
+                'Does the participant experience blurred vision?': 'மங்கலான பார்வை உள்ளதா?',
+                'Do they have difficulty seeing clearly at night?': 'இரவில் தெளிவாக பார்க்க சிரமமா?',
+                'Do they see dark spots or floaters?': 'பார்வையில் கரும்புள்ளிகள் தெரிகிறதா?',
+                'Do they experience frequent changes in vision?': 'பார்வையில் அடிக்கடி மாற்றம் ஏற்படுகிறதா?',
+                'Do they have difficulty reading small text?': 'சிறிய எழுத்துகளை வாசிக்க சிரமமா?',
+                'Do they notice distorted or wavy vision?': 'நேராக உள்ள பொருட்கள் வளைந்து காணப்படுகிறதா?',
+                'Do they feel eye strain or discomfort frequently?': 'கண்களில் வலி அல்லது சோர்வு ஏற்படுகிறதா?',
+                'Do they experience sudden loss of vision?': 'திடீரென பார்வை குறைவு ஏற்பட்டதா?',
+                'Do they notice difficulty recognizing faces from a distance?': 'தூரத்தில் உள்ள முகங்களை அடையாளம் காண சிரமமா?',
+                'Do their eyes become sensitive to bright light?': 'பிரகாசமான வெளிச்சத்திற்கு கண்கள் மிகவும் உணர்வாக உள்ளதா?',
+                'Does the participant have swelling in their feet or ankles?': 'உங்கள் கால்களில் அல்லது கணுக்கால்களில் வீக்கம் உள்ளதா?',
+                'Do they experience frequent urination at night?': 'இரவில் அடிக்கடி சிறுநீர் கழிக்க வேண்டிய நிலை உள்ளதா?',
+                'Do they notice foamy or bubbly urine?': 'நுரையுடன் கூடிய சிறுநீர் இருக்கிறதா?',
+                'Do they feel persistent fatigue or weakness?': 'அதிக சோர்வு அல்லது பலவீனம் உள்ளதா?',
+                'Do they experience loss of appetite?': 'உணவு விருப்பம் குறைந்துள்ளதா?',
+                'Do they have nausea or vomiting frequently?': 'அடிக்கடி வாந்தி அல்லது மயக்கம் ஏற்படுகிறதா?',
+                'Do they experience difficulty concentrating or confusion?': 'கவனம் செலுத்த சிரமம் உள்ளதா?',
+                'Do they notice dry and itchy skin?': 'தோல் உலர்வு மற்றும் அரிப்பு உள்ளதா?',
+                'Do they experience shortness of breath without exertion?': 'சுவாசிக்க சிரமம் உள்ளதா?',
+                'Do they notice reduced urine output?': 'சிறுநீர் வெளியேறும் அளவு குறைந்துள்ளதா?'
+            };
+            return map[text] || text;
+        }
+
+        function reviewView() { const a = state.assessment; const p = a.participant; const groups = [['Participant', [['Participant number', p.participantNumber], ['Age', p.age], ['Sex', p.sex], ['Education', p.education], ['Occupation', p.occupation], ['Duration', p.duration]]], ['Clinical & lifestyle', [['Medication adherence', p.medication], ['Drug type', p.drugType], ['Diet adherence', p.dietAdherence], ['Co-morbid disease', p.comorbid], ['Co-morbid detail', p.comorbidType], ['Physical activity', p.activity], ['BMI', p.bmi], ['Waist–hip ratio', p.waistHip], ['Hypertension history', a.clinical?.bp]]], ['Screening scores', [['Neuropathy', scoreFor('neuropathy') + '/10'], ['Retinopathy', scoreFor('retinopathy') + '/10'], ['Nephropathy', scoreFor('nephropathy') + '/10']]]]; return `<div class="assessment-head"><div class="assessment-title"><span class="eyebrow">${t('review')}</span><h1>${t('riskAssessment')}</h1><p>Review the screening picture before saving the local record.</p></div><button class="button-primary" data-action="results">Calculate screening results →</button></div><div class="review-grid">${groups.map(g => `<article class="panel-card"><h3>${g[0]}</h3>${g[1].map(x => `<div class="review-item"><span>${x[0]}</span><strong>${esc(x[1] || 'Not entered')}</strong></div>`).join('')}</article>`).join('')}</div><div class="notice" style="margin-top:18px">${t('disclaimer')}</div>`; }
+        function resultsView() { const scores = { neuropathy: scoreFor('neuropathy'), retinopathy: scoreFor('retinopathy'), nephropathy: scoreFor('nephropathy') }; const overall = Object.values(scores).reduce((a, b) => a + b, 0); return `<div class="assessment-head"><div class="assessment-title"><span class="eyebrow">${t('analysis')}</span><h1>Your screening picture</h1><p>These scores summarize entered symptoms; they do not establish a diagnosis.</p></div><button class="button-primary" data-action="save">${t('save')} →</button></div><div class="result-grid"><article class="panel-card risk-card"><span class="eyebrow">Overall assessment score</span><div class="risk-score">${overall}<small style="font:14px Manrope;color:var(--muted)"> / 30</small></div><span class="risk-level ${riskFromScore(Math.round(overall / 3))}">${riskLabel(riskFromScore(Math.round(overall / 3)))}</span><div class="recommendation">${overall < 10 ? 'Continue healthy lifestyle practices and regular check-ups.' : overall < 18 ? 'Follow preventive strategies and monitor symptoms regularly.' : 'Discuss these screening signals with a qualified physician for further evaluation.'}</div></article><article class="panel-card"><h3>Complication signals</h3>${Object.entries(scores).map(([k, v]) => `<div class="summary-line"><span>${t(k)}</span><strong class="risk-text risk-${riskFromScore(v)}">${v}/10 · ${riskLabel(riskFromScore(v))}</strong></div>`).join('')}</article></div><div class="section-heading"><div><h2>${t('educationTitle')}</h2><p>Resources matched to the screening categories.</p></div></div>${educationCards(scores)}`; }
+        function educationCards(scores) { const cards = [['Foot care', 'Daily inspection, comfortable footwear, and timely clinical review.', 'Neuropathy'], ['Eye care', 'Regular eye checkups and attention to changes in vision.', 'Retinopathy'], ['Protecting your kidneys', 'Blood pressure monitoring and appropriate urine testing.', 'Nephropathy']]; return `<div class="video-grid">${cards.map(c => `<article class="video-card"><div class="video-art"></div><div class="video-copy"><strong>${c[0]}</strong><small>${c[1]}</small><div class="eyebrow" style="margin-top:13px">${c[2]} resource · 2 min</div></div></article>`).join('')}</div>`; }
+        function reportsView() { if (!state.completed.length) return emptyView(t('finalReport')); return `<div class="section-heading" style="margin-top:0"><div><span class="eyebrow">ARCHIVE</span><h2>${t('finalReport')}</h2><p>Saved local prototype records.</p></div><button class="button-primary" data-action="new">＋ ${t('startAssessment')}</button></div>${assessmentRows(state.completed)}`; }
+        function participantsView() { return `<div class="section-heading" style="margin-top:0"><div><span class="eyebrow">RESEARCH RECORDS</span><h2>${t('participants')}</h2><p>Participant identifiers remain local to this browser.</p></div></div>${state.completed.length ? assessmentRows(state.completed) : emptyView(t('participants'))}`; }
+        function educationView() { return `<div class="section-heading" style="margin-top:0"><div><span class="eyebrow">PREVENTION LIBRARY</span><h2>${t('educationTitle')}</h2><p>Short educational modules to pair with a screening review.</p></div></div>${educationCards({})}<div class="notice" style="margin-top:18px">Educational content is placeholder copy for the prototype. Replace with approved research media before clinical use.</div>`; }
+        function emptyView(title) { return `<div class="empty-state"><h2>${esc(title)}</h2><p>${t('noDataSub')}</p><button class="button-primary" data-action="new">＋ ${t('startAssessment')}</button></div>`; }
+        function contextView() { const c = $('#contextContent'); if (state.view === 'assessment' && state.assessment) { const p = state.assessment.participant; const progress = Math.round((state.step / totalSteps()) * 100); c.innerHTML = `<div class="context-card"><span class="eyebrow">CURRENT SECTION</span><h3>${sectionForStep()}</h3><p>${state.step < participantQuestions.length ? 'Participant information' : 'Symptom-based screening'}</p><div class="progress-track"><div class="progress-bar" style="width:${progress}%"></div></div><div class="progress-meta"><span>${state.step + 1} / ${totalSteps()}</span><span>${progress}%</span></div></div><div class="context-card"><span class="eyebrow">PARTICIPANT SUMMARY</span><div class="summary-line"><span>Record</span><strong>${esc(p.participantNumber || 'New')}</strong></div><div class="summary-line"><span>Age</span><strong>${esc(p.age || '—')}</strong></div><div class="summary-line"><span>Duration</span><strong>${esc(p.duration || '—')}</strong></div></div><div class="context-card"><span class="eyebrow">SCREENING NOTE</span><p>Risk levels are based on the supplied symptom scoring bands and are intended for review, not diagnosis.</p></div>`; } else c.innerHTML = `<div class="context-card"><span class="eyebrow">WORKSPACE NOTE</span><h3>Measured, attentive, trustworthy.</h3><p>Use this prototype to walk through the research workflow before connecting approved data and media services.</p></div><div class="context-card"><span class="eyebrow">QUICK STATUS</span><div class="summary-line"><span>Language</span><strong>${state.language === 'en' ? 'English' : 'தமிழ்'}</strong></div><div class="summary-line"><span>Theme</span><strong>${state.theme === 'dark' ? 'Dark' : 'Light'}</strong></div></div>`; }
+        function bindAdvanceButton(el) { let busy = false; const run = event => { if (event) event.preventDefault(); if (busy) return; busy = true; advance(); window.setTimeout(() => { busy = false; }, 260); }; el.onclick = run; el.onpointerup = event => { if (event.pointerType === 'touch' || event.pointerType === 'pen') run(event); }; }
+        function bindViewEvents() {
+            $$('.nav-item[data-view]').forEach(el => el.onclick = () => setView(el.dataset.view)); $$('[data-action="new"]').forEach(el => el.onclick = startAssessment); $$('[data-action="soon"]').forEach(el => el.onclick = () => showToast(t('soon'))); $$('[data-action="notice"]').forEach(el => el.onclick = () => showToast(t('notice'))); $$('[data-action="review"]').forEach(el => el.onclick = () => { state.view = 'review'; render(); });
+            $$('[data-action="results"]').forEach(el => el.onclick = () => { state.view = 'results'; renderResults(); }); $$('[data-action="save"]').forEach(el => el.onclick = saveAssessment); $$('[data-view="reports"]').forEach(el => el.onclick = () => setView('reports'));
+            if (state.view === 'assessment') { $$('.answer-button').forEach(btn => btn.type = 'button'); $$('.answer-button').forEach(btn => btn.onclick = event => { event.preventDefault(); const q = questionForStep(); setCurrentValue(q, btn.dataset.answer); render(); }); const input = $('#currentInput'); if (input) { input.oninput = () => { setCurrentValue(questionForStep(), input.value); const next = $('[data-action="continue"]'); if (next) { next.disabled = !input.value.trim(); next.classList.toggle('ready', Boolean(input.value.trim())); } }; input.onkeydown = e => { if (e.key === 'Enter' && input.value.trim()) { e.preventDefault(); advance(); } } } $$('[data-action="continue"]').forEach(el => { el.type = 'button'; bindAdvanceButton(el); }); $$('[data-action="back"]').forEach(el => { el.type = 'button'; el.onclick = () => { if (state.step > 0) { state.step--; render(); } else setView('dashboard'); }; }); }
+        }
+        function advance() { const q = questionForStep(); const value = currentValue(q); const unanswered = value === undefined || value === null || value === ''; if (unanswered) { showToast(t('required')); return; } if (state.step < totalSteps() - 1) { state.step++; render(); } else { state.view = 'review'; render(); } }
+        function renderResults() { $('#viewRoot').innerHTML = resultsView(); contextView(); bindViewEvents(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        function saveAssessment() { state.assessment.completedAt = new Date().toISOString(); state.completed.push(state.assessment); localStorage.setItem('diabetesAssessments', JSON.stringify(state.completed)); showToast(t('saved')); setView('reports'); }
+
+        $('#languageToggle').onclick = () => { state.language = state.language === 'en' ? 'ta' : 'en'; updateLanguage(); };
+        $('#themeToggle').onclick = () => { state.theme = state.theme === 'dark' ? 'light' : 'dark'; localStorage.setItem('theme', state.theme); applyTheme(); };
+        $('#mobileMenu').onclick = () => $('.sidebar').classList.toggle('open');
+        $('#collapseContext').onclick = () => $('#contextPanel').classList.toggle('collapsed');
+
+        state.theme = localStorage.getItem('theme') || 'light';
+        render();
+    </script>
+</body>
+
+</html>
