@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="ta">
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description"
         content="AI-Based Diabetes Complication Risk Prediction App — a guided screening and risk assessment prototype.">
-    <title>நீரிழிவு சிக்கல் ஆபத்து மதிப்பீடு</title>
+    <title>Diabetes Risk AI</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -1559,7 +1559,7 @@
         ];
 
         const state = {
-            view: 'dashboard', language: localStorage.getItem('language') || 'ta', theme: localStorage.getItem('theme') || 'light',
+            view: 'dashboard', language: 'en', theme: localStorage.getItem('theme') || 'light',
             assessment: null, step: 0, currentQuestions: [], completed: JSON.parse(localStorage.getItem('diabetesAssessments') || '[]')
         };
 
