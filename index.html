@@ -1,21 +1,22 @@
 <!doctype html>
-<html lang="en">
+<html lang="ta">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description"
         content="AI-Based Diabetes Complication Risk Prediction App — a guided screening and risk assessment prototype.">
-    <title>Diabetes Risk AI</title>
+    <title>நீரிழிவு சிக்கல் ஆபத்து மதிப்பீடு</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Manrope:wght@400;500;600;700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+Tamil:wght@400;500;600;700;800&family=Noto+Serif+Tamil:wght@400;600&display=swap"
         rel="stylesheet">
 </head>
 
 <body>
     <div class="app-shell" id="appShell">
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
         <aside class="sidebar" aria-label="Primary navigation">
             <div class="brand-lockup">
                 <div class="brand-mark" aria-hidden="true"><span></span><i></i></div>
@@ -65,7 +66,7 @@
     </div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <style>
-        /*Quiet Clinical Atelier — warm research paper, ink navy, mineral teal, editorial hierarchy */
+        /* Quiet Clinical Atelier — warm research paper, ink navy, mineral teal, editorial hierarchy. */
         :root {
             --bg: #f5f3ee;
             --surface: #fffdfa;
@@ -132,10 +133,47 @@
             cursor: pointer
         }
 
+        html.lang-ta body {
+            font-family: 'Noto Sans Tamil', Manrope, system-ui, sans-serif;
+        }
+
+        html.lang-ta .brand-lockup strong,
+        html.lang-ta .hero-panel h1,
+        html.lang-ta .assessment-title h1,
+        html.lang-ta .section-heading h2,
+        html.lang-ta .question-card h2 {
+            font-family: 'Noto Serif Tamil', 'DM Serif Display', serif;
+        }
+
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 25, 33, .45);
+            backdrop-filter: blur(2px);
+            z-index: 25;
+            opacity: 0;
+            transition: opacity .25s var(--ease)
+        }
+
+        .sidebar-backdrop.show {
+            display: block;
+            opacity: 1
+        }
+
         .app-shell {
             min-height: 100vh;
             display: grid;
-            grid-template-columns: 242px minmax(0, 1fr) 292px
+            grid-template-columns: 242px minmax(0, 1fr) 292px;
+            max-width: 1680px;
+            margin: 0 auto;
+            box-shadow: var(--shadow)
+        }
+
+        @media(min-width:1681px) {
+            body {
+                background: var(--surface-2)
+            }
         }
 
         .sidebar {
@@ -1390,6 +1428,37 @@
             }
         }
 
+        @media(max-width:380px) {
+            .kpi-grid {
+                grid-template-columns: 1fr
+            }
+
+            .hero-panel h1 {
+                font-size: 34px
+            }
+
+            .view-root {
+                padding: 22px 14px 90px
+            }
+        }
+
+        .nav-item,
+        .answer-button,
+        .button-primary,
+        .icon-button,
+        .help-button {
+            min-height: 40px
+        }
+
+        @media(hover:none) {
+
+            .nav-item,
+            .answer-button,
+            .button-primary {
+                min-height: 46px
+            }
+        }
+
         @media(prefers-reduced-motion:reduce) {
 
             *,
@@ -1398,6 +1467,45 @@
                 animation: none !important;
                 transition: none !important
             }
+        }
+        /* Mobile refinements: preserve readable Tamil text and comfortable touch targets. */
+        body { overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+        .question-card h2, .answer-button { overflow-wrap: anywhere; }
+        .answer-button { min-width: 0; }
+        .text-input { width: 100%; min-height: 52px; }
+        .conversation-footer { gap: 10px; }
+        .conversation-footer button { flex: 1; min-height: 48px; }
+        @media (max-width: 820px) {
+            .app-shell { max-width: none; box-shadow: none; }
+            .sidebar { width: min(86vw, 310px); min-height: 100dvh; overflow-y: auto; }
+            .topbar { padding-left: 14px; padding-right: 14px; }
+            .mobile-menu { width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 10px; display: grid; place-items: center; }
+            .view-root { padding-left: clamp(16px, 4vw, 32px); padding-right: clamp(16px, 4vw, 32px); }
+            .assessment-head { gap: 16px; }
+            .assessment-title { min-width: 0; }
+        }
+        @media (max-width: 520px) {
+            body { font-size: 15px; }
+            .view-root { padding: 24px 14px 92px; }
+            .topbar { height: 62px; }
+            .top-actions { gap: 5px; }
+            .language-toggle { padding: 7px 8px; }
+            .icon-button { width: 36px; height: 36px; }
+            .assessment-head { margin-bottom: 24px; }
+            .assessment-title h1 { font-size: clamp(28px, 8vw, 36px); line-height: 1.08; }
+            .assessment-title p { font-size: 13px; }
+            .question-card { padding: 22px 16px; }
+            .question-card h2 { font-size: clamp(25px, 7.8vw, 32px); line-height: 1.2; }
+            .answer-grid { grid-template-columns: 1fr; gap: 9px; }
+            .answer-button { min-height: 52px; padding: 13px 12px; text-align: left; }
+            .conversation-footer { margin-top: 18px; padding-top: 12px; }
+            .progress-meta { font-size: 10px; }
+        }
+        @media (max-width: 380px) {
+            .top-actions .icon-button { display: none; }
+            .language-toggle { font-size: 10px; }
+            .conversation-footer { flex-direction: column-reverse; }
+            .conversation-footer button { width: 100%; }
         }
     </style>
     <script>
@@ -1433,43 +1541,70 @@
             retinopathy: ['Does the participant experience blurred vision?', 'Do they have difficulty seeing clearly at night?', 'Do they see dark spots or floaters?', 'Do they experience frequent changes in vision?', 'Do they have difficulty reading small text?', 'Do they notice distorted or wavy vision?', 'Do they feel eye strain or discomfort frequently?', 'Do they experience sudden loss of vision?', 'Do they notice difficulty recognizing faces from a distance?', 'Do their eyes become sensitive to bright light?'],
             nephropathy: ['Does the participant have swelling in their feet or ankles?', 'Do they experience frequent urination at night?', 'Do they notice foamy or bubbly urine?', 'Do they feel persistent fatigue or weakness?', 'Do they experience loss of appetite?', 'Do they have nausea or vomiting frequently?', 'Do they experience difficulty concentrating or confusion?', 'Do they notice dry and itchy skin?', 'Do they experience shortness of breath without exertion?', 'Do they notice reduced urine output?']
         };
+        const tamilSymptomSets = {
+            neuropathy: ['உங்கள் கால்கள் அல்லது பாதங்களில் வலி உள்ளதா?', 'உங்கள் பாதங்களில் உணர்வின்மை உள்ளதா?', 'உங்கள் பாதங்களில் கூச்சம் அல்லது முள் குத்துவது போன்ற உணர்வு உள்ளதா?', 'உங்கள் பாதங்களில் எரியும் உணர்வு உள்ளதா?', 'உங்கள் பாதங்களில் உணர்வு இழப்பு உள்ளதா?', 'உங்கள் பாதங்களைத் தொடும்போது அதிக உணர்திறன் உள்ளதா?', 'உங்கள் கால்களில் தசை பலவீனம் உள்ளதா?', 'பாத அசௌகரியம் காரணமாக நடப்பதில் சிரமம் உள்ளதா?', 'உங்கள் பாதங்களில் கூர்மையான அல்லது குத்துவது போன்ற வலி உள்ளதா?', 'உங்கள் பாதங்களில் வெப்பநிலை மாற்றங்களை உணரும் திறன் குறைந்துள்ளதா?'],
+            retinopathy: ['மங்கலான பார்வை உள்ளதா?', 'இரவில் தெளிவாகப் பார்ப்பதில் சிரமம் உள்ளதா?', 'பார்வையில் கரும்புள்ளிகள் அல்லது மிதக்கும் புள்ளிகள் (Floaters) தோன்றுகிறதா?', 'பார்வையில் அடிக்கடி மாற்றங்கள் ஏற்படுகிறதா?', 'சிறிய எழுத்துகளைப் படிப்பதில் சிரமம் உள்ளதா?', 'பார்வை சிதைந்ததாக அல்லது அலைபோல் தோன்றுகிறதா?', 'அடிக்கடி கண் சோர்வு அல்லது அசௌகரியம் ஏற்படுகிறதா?', 'ஒன்று அல்லது இரு கண்களிலும் திடீரென பார்வை இழப்பு ஏற்பட்டதா?', 'தூரத்தில் உள்ள முகங்களை அடையாளம் காண்பதில் சிரமம் உள்ளதா?', 'பிரகாசமான வெளிச்சத்திற்கு கண்கள் உணர்திறனாக உள்ளதா?'],
+            nephropathy: ['உங்கள் கால்கள் அல்லது கணுக்கால்களில் வீக்கம் உள்ளதா?', 'இரவில் அடிக்கடி சிறுநீர் கழிக்க வேண்டிய நிலை உள்ளதா?', 'நுரையுடன் அல்லது குமிழ்களுடன் கூடிய சிறுநீர் வெளியேறுகிறதா?', 'தொடர்ந்து சோர்வு அல்லது பலவீனம் உள்ளதா?', 'பசியின்மை உள்ளதா?', 'அடிக்கடி குமட்டல் அல்லது வாந்தி ஏற்படுகிறதா?', 'கவனம் செலுத்துவதில் சிரமம் அல்லது குழப்பம் உள்ளதா?', 'தோல் உலர்ந்து அரிப்பு உள்ளதா?', 'உடல் உழைப்பு இல்லாமலேயே மூச்சுத்திணறல் ஏற்படுகிறதா?', 'சிறுநீர் வெளியேற்றம் குறைந்துள்ளதா?']
+        };
+        const perceptionQuestions = [
+            { id: 'perception_0', label: 'It was easy to use this app.', labelTa: 'இந்த செயலியைப் பயன்படுத்துவது எளிதாக இருந்தது.', options: ['Strongly agree', 'Agree', 'Not sure', 'Disagree', 'Strongly disagree'] },
+            { id: 'perception_1', label: 'The questions in the app were clearly understandable.', labelTa: 'செயலியில் உள்ள கேள்விகள் தெளிவாகப் புரிந்தன.', options: ['Strongly agree', 'Agree', 'Not sure', 'Disagree', 'Strongly disagree'] },
+            { id: 'perception_2', label: 'This app increased my awareness of diabetes complications.', labelTa: 'இந்த செயலி நீரிழிவு நோய் சிக்கல்கள் குறித்த எனது விழிப்புணர்வை அதிகரித்தது.', options: ['Strongly agree', 'Agree', 'Not sure', 'Disagree', 'Strongly disagree'] },
+            { id: 'perception_3', label: 'The information provided in the app was useful.', labelTa: 'செயலியில் வழங்கப்பட்ட தகவல்கள் பயனுள்ளதாக இருந்தன.', options: ['Strongly agree', 'Agree', 'Not sure', 'Disagree', 'Strongly disagree'] },
+            { id: 'perception_4', label: 'This app helped me understand my health risk.', labelTa: 'இந்த செயலி எனது உடல்நல ஆபத்தைப் புரிந்துகொள்ள உதவியது.', options: ['Strongly agree', 'Agree', 'Not sure', 'Disagree', 'Strongly disagree'] },
+            { id: 'perception_5', label: 'The preventive strategies provided in the app were useful.', labelTa: 'செயலியில் வழங்கப்பட்ட தடுப்பு வழிமுறைகள் பயனுள்ளதாக இருந்தன.', options: ['Strongly agree', 'Agree', 'Not sure', 'Disagree', 'Strongly disagree'] },
+            { id: 'perception_6', label: 'The educational video shown in the app was easy to understand.', labelTa: 'செயலியில் காண்பிக்கப்பட்ட கல்வி வீடியோவைப் புரிந்துகொள்வது எளிதாக இருந்தது.', options: ['Strongly agree', 'Agree', 'Not sure', 'Disagree', 'Strongly disagree'] },
+            { id: 'perception_7', label: 'After using this app, I felt more confident about preventing diabetes complications.', labelTa: 'இந்த செயலியைப் பயன்படுத்திய பிறகு, நீரிழிவு சிக்கல்களைத் தடுப்பதில் எனது நம்பிக்கை அதிகரித்தது.', options: ['Strongly agree', 'Agree', 'Not sure', 'Disagree', 'Strongly disagree'] },
+            { id: 'perception_8', label: 'It would be useful for people with diabetes to use this app.', labelTa: 'நீரிழிவு நோயாளிகள் இந்த செயலியைப் பயன்படுத்துவது பயனுள்ளதாக இருக்கும்.', options: ['Strongly agree', 'Agree', 'Not sure', 'Disagree', 'Strongly disagree'] }
+        ];
 
         const state = {
-            view: 'dashboard', language: localStorage.getItem('language') || 'en', theme: localStorage.getItem('theme') || 'light',
+            view: 'dashboard', language: localStorage.getItem('language') || 'ta', theme: localStorage.getItem('theme') || 'light',
             assessment: null, step: 0, currentQuestions: [], completed: JSON.parse(localStorage.getItem('diabetesAssessments') || '[]')
         };
 
         const participantQuestions = [
-            { id: 'participantNumber', label: 'What is the participant number?', type: 'text', placeholder: 'e.g. P-025' },
-            { id: 'age', label: 'What is the participant’s age in years?', type: 'number', placeholder: 'Enter age' },
-            { id: 'sex', label: 'What is the participant’s sex?', type: 'choice', options: ['Male', 'Female'] },
-            { id: 'education', label: 'What is the participant’s highest level of education?', type: 'choice', options: ['Illiterate', 'Primary', 'High school', 'Higher secondary', 'Graduate'] },
-            { id: 'occupation', label: 'What is the participant’s occupation?', type: 'text', placeholder: 'Enter occupation' },
-            { id: 'income', label: 'What is the monthly family income range?', type: 'choice', options: ['≤ ₹6,999', '₹7,000–10,999', '₹11,000–18,999', '₹19,000–28,999', '₹29,000–38,999', '₹39,000–77,999', '≥ ₹78,000'] },
-            { id: 'marital', label: 'What is the participant’s marital status?', type: 'choice', options: ['Single', 'Married', 'Separated', 'Divorced'] },
-            { id: 'area', label: 'Where does the participant live?', type: 'choice', options: ['Rural', 'Urban'] },
-            { id: 'duration', label: 'How long has the participant had diabetes?', type: 'choice', options: ['Less than 1 year', '1–10 years', '11–20 years', 'More than 20 years'] },
-            { id: 'checkup', label: 'How often does the participant have a health checkup?', type: 'choice', options: ['Once a month', 'Once every 6 months', 'More than a year', 'Never'] },
-            { id: 'medication', label: 'How would you describe medication adherence?', type: 'choice', options: ['Regular', 'Irregular'] },
-            { id: 'drugType', label: 'What type of drug does the participant take?', type: 'choice', options: ['Oral hypoglycemic tablets', 'Insulin injection', 'AYUSH medicines'] },
-            { id: 'dietAdherence', label: 'Does the participant follow the recommended diabetic diet?', type: 'choice', options: ['Yes', 'No'] },
-            { id: 'comorbid', label: 'Does the participant have any co-morbid disease?', type: 'choice', options: ['Yes', 'No'] },
-            { id: 'comorbidType', label: 'If yes, which co-morbid condition(s)? (Hypertension, Heart disease, Ophthalmic disease, Renal disease, Other)', type: 'text', placeholder: 'e.g. Hypertension — leave blank if none' },
-            { id: 'activity', label: 'Does the participant perform regular physical activity?', type: 'choice', options: ['Yes', 'No'] },
-            { id: 'bmi', label: 'What is the participant’s BMI, if available?', type: 'number', placeholder: 'Optional' },
-            { id: 'waistHip', label: 'What is the participant’s waist–hip ratio, if available?', type: 'text', placeholder: 'Optional' },
-            { id: 'bp', label: 'Is there a history of hypertension?', type: 'choice', options: ['Yes', 'No'] }
+            { id: 'participantNumber', label: 'What is the participant number?', labelTa: 'பங்கேற்பாளர் எண் என்ன?', type: 'text', placeholder: 'e.g. P-025', placeholderTa: 'எ.கா. பி-௦௨௫' },
+            { id: 'age', label: 'What is the participant’s age in years?', labelTa: 'பங்கேற்பாளரின் வயது (ஆண்டுகளில்) என்ன?', type: 'number', placeholder: 'Enter age', placeholderTa: 'வயதை உள்ளிடவும்' },
+            { id: 'sex', label: 'What is the participant’s sex?', labelTa: 'பங்கேற்பாளரின் பாலினம் என்ன?', type: 'choice', options: ['Male', 'Female'] },
+            { id: 'education', label: 'What is the participant’s highest level of education?', labelTa: 'பங்கேற்பாளரின் கல்வித் தகுதி என்ன?', type: 'choice', options: ['Illiterate', 'Primary', 'High school', 'Higher secondary', 'Graduate'] },
+            { id: 'occupation', label: 'What is the participant’s occupation?', labelTa: 'பங்கேற்பாளரின் தொழில் என்ன?', type: 'text', placeholder: 'Enter occupation', placeholderTa: 'தொழிலை உள்ளிடவும்' },
+            { id: 'income', label: 'What is the monthly family income range?', labelTa: 'மாதாந்திர குடும்ப வருமான வரம்பு என்ன?', type: 'choice', options: ['≤ ₹6,999', '₹7,000–10,999', '₹11,000–18,999', '₹19,000–28,999', '₹29,000–38,999', '₹39,000–77,999', '≥ ₹78,000'] },
+            { id: 'marital', label: 'What is the participant’s marital status?', labelTa: 'பங்கேற்பாளரின் திருமண நிலை என்ன?', type: 'choice', options: ['Single', 'Married', 'Separated', 'Divorced'] },
+            { id: 'area', label: 'Where does the participant live?', labelTa: 'பங்கேற்பாளர் வசிக்கும் பகுதி எது?', type: 'choice', options: ['Rural', 'Urban'] },
+            { id: 'duration', label: 'How long has the participant had diabetes?', labelTa: 'பங்கேற்பாளருக்கு நீரிழிவு நோய் உள்ள கால அளவு எவ்வளவு?', type: 'choice', options: ['Less than 1 year', '1–10 years', '11–20 years', 'More than 20 years'] },
+            { id: 'checkup', label: 'How often does the participant have a health checkup?', labelTa: 'பங்கேற்பாளர் எத்தனை இடைவெளியில் சுகாதாரப் பரிசோதனை செய்கிறார்?', type: 'choice', options: ['Once a month', 'Once every 6 months', 'More than a year', 'Never'] },
+            { id: 'medication', label: 'How would you describe medication adherence?', labelTa: 'மருந்துகளை எடுத்துக்கொள்ளும் ஒழுங்கு எப்படி உள்ளது?', type: 'choice', options: ['Regular', 'Irregular'] },
+            { id: 'drugType', label: 'What type of drug does the participant take?', labelTa: 'பங்கேற்பாளர் எந்த வகையான நீரிழிவு மருந்தை எடுத்துக்கொள்கிறார்?', type: 'choice', options: ['Oral hypoglycemic tablets', 'Insulin injection', 'AYUSH medicines'] },
+            { id: 'takeMedsRegularly', label: 'Do you take your medications regularly?', labelTa: 'நீங்கள் மருந்துகளை ஒழுங்காக எடுத்துக்கொள்கிறீர்களா?', type: 'choice', options: ['Yes', 'No'] },
+            { id: 'medicationReason', label: 'If no, what is the reason for not taking the medications regularly?', labelTa: 'இல்லை என்றால், மருந்துகளை ஒழுங்காக எடுத்துக்கொள்ளாததற்கான காரணம் என்ன?', type: 'text', placeholder: 'Enter reason', placeholderTa: 'காரணத்தை உள்ளிடவும்', optional: true },
+            { id: 'dietAdherence', label: 'Do you follow the recommended diabetic diet?', labelTa: 'பரிந்துரைக்கப்பட்ட நீரிழிவு உணவு முறையைப் பின்பற்றுகிறீர்களா?', type: 'choice', options: ['Yes', 'No'] },
+            { id: 'dietReason', label: 'If no, what is the reason for not following the diabetic diet?', labelTa: 'இல்லை என்றால், நீரிழிவு உணவு முறையைப் பின்பற்றாததற்கான காரணம் என்ன?', type: 'text', placeholder: 'Enter reason', placeholderTa: 'காரணத்தை உள்ளிடவும்', optional: true },
+            { id: 'comorbid', label: 'Do you have any co-morbid disease?', labelTa: 'உங்களுக்கு ஏதேனும் இணைநோய் உள்ளதா?', type: 'choice', options: ['Yes', 'No'] },
+            { id: 'comorbidType', label: 'If yes, which co-morbid condition(s) do you have?', labelTa: 'ஆம் என்றால், எந்த இணைநோய்(கள்) உள்ளன? (உயர் இரத்த அழுத்தம், இதய நோய், கண் நோய், சிறுநீரக நோய் அல்லது பிற)', type: 'text', placeholder: 'List conditions; leave blank if none', placeholderTa: 'நோய்களைப் பட்டியலிடவும்; இல்லையெனில் காலியாக விடவும்', optional: true },
+            { id: 'activity', label: 'Do you perform regular physical activity?', labelTa: 'நீங்கள் வழக்கமாக உடற்பயிற்சி அல்லது உடல் செயல்பாடு செய்கிறீர்களா?', type: 'choice', options: ['Yes', 'No'] },
+            { id: 'bmi', label: 'What is the participant’s Body Mass Index (BMI), if available?', labelTa: 'பங்கேற்பாளரின் உடல் நிறை குறியீடு (BMI), தகவல் இருந்தால், என்ன?', type: 'number', placeholder: 'Optional', placeholderTa: 'விருப்பத்திற்குரியது', optional: true },
+            { id: 'waistHip', label: 'What is the participant’s waist–hip ratio, if available?', labelTa: 'பங்கேற்பாளரின் இடுப்பு–தொடை விகிதம், தகவல் இருந்தால், என்ன?', type: 'text', placeholder: 'Optional', placeholderTa: 'விருப்பத்திற்குரியது', optional: true },
+            { id: 'bp', label: 'Is there a history of hypertension?', labelTa: 'உயர் இரத்த அழுத்தம் இருந்த வரலாறு உள்ளதா?', type: 'choice', options: ['Yes', 'No'] }
         ];
 
+        const tamilDigitMap = ['௦', '௧', '௨', '௩', '௪', '௫', '௬', '௭', '௮', '௯'];
+        function toTamilDigits(value) { return String(value).replace(/[0-9]/g, d => tamilDigitMap[Number(d)]); }
+        function displayNumber(value) { return state.language === 'ta' ? toTamilDigits(value) : String(value); }
+        const optionTamil = { Male: 'ஆண்', Female: 'பெண்', Illiterate: 'கல்வியறிவு இல்லை', Primary: 'ஆரம்பக் கல்வி', 'High school': 'உயர்நிலைப் பள்ளி', 'Higher secondary': 'மேல்நிலைப் பள்ளி', Graduate: 'பட்டப்படிப்பு', Single: 'திருமணம் ஆகாதவர்', Married: 'திருமணமானவர்', Separated: 'பிரிந்தவர்', Divorced: 'விவாகரத்து பெற்றவர்', Rural: 'கிராமப்புறம்', Urban: 'நகர்ப்புறம்', 'Less than 1 year': '௧ ஆண்டிற்குக் குறைவு', '1–10 years': '௧–௧௦ ஆண்டுகள்', '11–20 years': '௧௧–௨௦ ஆண்டுகள்', 'More than 20 years': '௨௦ ஆண்டுகளுக்கு மேல்', 'Once a month': 'மாதத்திற்கு ஒருமுறை', 'Once every 6 months': '௬ மாதத்திற்கு ஒருமுறை', 'More than a year': 'ஆண்டிற்கு ஒருமுறை அல்லது அதற்கு மேல்', Never: 'ஒருபோதும் செய்யவில்லை', Regular: 'ஒழுங்காக', Irregular: 'ஒழுங்காக இல்லை', 'Oral hypoglycemic tablets': 'வாய்வழி சர்க்கரை குறைக்கும் மாத்திரைகள்', 'Insulin injection': 'இன்சுலின் ஊசி', 'AYUSH medicines': 'ஆயுஷ் மருந்துகள்', Yes: 'ஆம்', No: 'இல்லை', '≤ ₹6,999': '₹௬,௯௯௯ அல்லது அதற்குக் குறைவு', '₹7,000–10,999': '₹௭,௦௦௦–௧௦,௯௯௯', '₹11,000–18,999': '₹௧௧,௦௦௦–௧௮,௯௯௯', '₹19,000–28,999': '₹௧௯,௦௦௦–௨௮,௯௯௯', '₹29,000–38,999': '₹௨௯,௦௦௦–௩௮,௯௯௯', '₹39,000–77,999': '₹௩௯,௦௦௦–௭௭,௯௯௯', '≥ ₹78,000': '₹௭௮,௦௦௦ அல்லது அதற்கு மேல்', 'Strongly agree': 'மிகவும் ஒப்புக்கொள்கிறேன்', Agree: 'ஒப்புக்கொள்கிறேன்', 'Not sure': 'உறுதியாகத் தெரியவில்லை', Disagree: 'ஒப்புக்கொள்ளவில்லை', 'Strongly disagree': 'முற்றிலும் ஒப்புக்கொள்ளவில்லை' };
+        function displayQuestionText(q) { return state.language === 'ta' ? (q.labelTa || q.label) : q.label; }
+        function displayOption(option) { return state.language === 'ta' ? toTamilDigits(optionTamil[option] || option || '—') : (option || '—'); }
+        function displayPlaceholder(q) { return state.language === 'ta' ? toTamilDigits(q.placeholderTa || q.placeholder || '') : (q.placeholder || ''); }
         function t(key) { return translations[state.language][key] || translations.en[key] || key; }
         function esc(value = '') { return String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char])); }
         function setView(view) { state.view = view; $$('.nav-item[data-view]').forEach(el => el.classList.toggle('active', el.dataset.view === view)); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
         function showToast(message) { const toast = $('#toast'); toast.textContent = message; toast.classList.add('show'); clearTimeout(window.toastTimer); window.toastTimer = setTimeout(() => toast.classList.remove('show'), 2600); }
         function riskFromScore(score) { return score <= 3 ? 'low' : score <= 6 ? 'moderate' : 'high'; }
         function riskLabel(level) { return t(level); }
-        function freshAssessment() { return { participant: {}, diabetes: {}, clinical: {}, neuropathy: [], retinopathy: [], nephropathy: [], doctorReview: {}, perception: {}, createdAt: new Date().toISOString() }; }
+        function freshAssessment() { return { participant: {}, diabetes: {}, clinical: {}, neuropathy: [], retinopathy: [], nephropathy: [], doctorReview: {}, perception: [], createdAt: new Date().toISOString() }; }
         function applyTheme() { document.documentElement.classList.toggle('dark', state.theme === 'dark'); $('#themeToggle').textContent = state.theme === 'dark' ? '☀' : '☾'; }
-        function updateLanguage() { localStorage.setItem('language', state.language); $('#languageToggle').innerHTML = state.language === 'en' ? '<b>EN</b><span>/</span><span>தமிழ்</span>' : '<span>EN</span><span>/</span><b>தமிழ்</b>'; render(); }
+        function applyLanguageFont() { document.documentElement.classList.toggle('lang-ta', state.language === 'ta'); document.documentElement.lang = state.language === 'ta' ? 'ta' : 'en'; }
+        function updateLanguage() { localStorage.setItem('language', state.language); $('#languageToggle').innerHTML = state.language === 'en' ? '<b>EN</b><span>/</span><span>தமிழ்</span>' : '<span>EN</span><span>/</span><b>தமிழ்</b>'; applyLanguageFont(); render(); }
         function riskBadge(level) { return `<span class="risk-level ${level}">${riskLabel(level)}</span>`; }
         function scoreFor(type) { const answers = state.assessment?.[type] || []; return answers.filter(Boolean).length; }
         function assessmentStatus(a) { return a.completedAt ? 'completed' : 'progress'; }
@@ -1501,12 +1636,12 @@
         function assessmentRows(records) { return `<div class="assessment-list"><div class="assessment-row header"><span>Participant</span><span>Age</span><span>Date</span><span>Status</span><span>Screening signals</span></div>${records.slice(-6).reverse().map(a => { const p = a.participant || {}; return `<div class="assessment-row"><div class="person"><span class="person-mark">${esc(String(p.participantNumber || 'P?').slice(-2))}</span><div><strong>${esc(p.participantNumber || 'Unnamed')}</strong><small>Local prototype record</small></div></div><span>${esc(p.age || '—')}</span><span class="muted">${new Date(a.createdAt).toLocaleDateString()}</span><span class="status-pill ${assessmentStatus(a) === 'completed' ? 'completed' : 'progress'}">${assessmentStatus(a)}</span><span class="risk-text"><b class="risk-${riskFromScore((a.neuropathy || []).filter(Boolean).length)}">${riskFromScore((a.neuropathy || []).filter(Boolean).length)}</b> · <b class="risk-${riskFromScore((a.retinopathy || []).filter(Boolean).length)}">${riskFromScore((a.retinopathy || []).filter(Boolean).length)}</b> · <b class="risk-${riskFromScore((a.nephropathy || []).filter(Boolean).length)}">${riskFromScore((a.nephropathy || []).filter(Boolean).length)}</b></span></div>` }).join('')}</div>`; }
 
         function startAssessment() { state.assessment = freshAssessment(); state.step = 0; state.currentQuestions = participantQuestions; setView('assessment'); }
-        function questionForStep() { if (state.step < participantQuestions.length) return participantQuestions[state.step]; const offset = state.step - participantQuestions.length; const type = offset < 10 ? 'neuropathy' : offset < 20 ? 'retinopathy' : 'nephropathy'; return { id: `${type}_${offset % 10}`, type: 'symptom', category: type, label: symptomSets[type][offset % 10], options: ['Yes', 'No'] }; }
-        function totalSteps() { return participantQuestions.length + 30; }
-        function currentValue(q) { if (q.type === 'symptom') return state.assessment[q.category][Number(q.id.split('_')[1])]; return state.assessment.participant[q.id] ?? state.assessment.clinical[q.id]; }
-        function setCurrentValue(q, value) { if (q.type === 'symptom') state.assessment[q.category][Number(q.id.split('_')[1])] = value === 'Yes'; else if (['bmi', 'bp'].includes(q.id)) state.assessment.clinical[q.id] = value; else state.assessment.participant[q.id] = value; }
-        function sectionForStep() { if (state.step < participantQuestions.length) return t('participant'); if (state.step < participantQuestions.length + 10) return t('neuropathy'); if (state.step < participantQuestions.length + 20) return t('retinopathy'); return t('nephropathy'); }
-        function assessmentView() { const q = questionForStep(); const val = currentValue(q); const progress = Math.round((state.step / totalSteps()) * 100); const isSymptom = q.type === 'symptom'; const options = q.options || []; return `<div class="assessment-layout"><div class="assessment-head"><div class="assessment-title"><span class="eyebrow">${sectionForStep()}</span><h1>${t('riskAssessment')}</h1><p>One clear prompt at a time. Answers remain editable.</p></div><div class="step-count"><strong>${Math.min(state.step + 1, totalSteps())}</strong> of ${totalSteps()}</div></div><div class="conversation"><div class="system-note"><span class="system-orb">✦</span><span>${isSymptom ? 'Please select the answer that best describes the participant.' : 'Let’s build the participant record carefully, one detail at a time.'}</span></div><article class="question-card"><div class="question-label">${t('question')} ${state.step + 1} · ${sectionForStep()}</div><h2>${isSymptom && state.language === 'ta' ? translateSymptom(q.label) : q.label}</h2><p>${isSymptom ? 'Symptom-based screening question.' : 'Use the participant’s response or available clinical record.'}</p>${q.type === 'choice' || isSymptom ? `<div class="answer-grid">${options.map((option, i) => `<button type="button" class="answer-button ${String(val) === String(option) || (typeof val === 'boolean' && String(val) === (option === 'Yes' ? 'true' : 'false')) ? 'selected' : ''}" data-answer="${esc(option)}"><span class="answer-index">0${i + 1}</span>${option}</button>`).join('')}</div>` : `<input class="text-input" id="currentInput" type="${q.type === 'number' ? 'number' : 'text'}" value="${esc(val || '')}" placeholder="${esc(q.placeholder || '')}" autofocus>`}<div class="conversation-footer"><button type="button" class="back-button" data-action="back">← ${t('back')}</button><button type="button" class="continue-button ${val != null && val !== '' ? 'ready' : ''}" data-action="continue" ${val == null || val === '' ? 'disabled' : ''}>${state.step === totalSteps() - 1 ? t('review') : t('continue')} →</button></div></article><div style="margin-top:20px"><div class="progress-track"><div class="progress-bar" style="width:${progress}%"></div></div><div class="progress-meta"><span>${sectionForStep()}</span><span>${progress}% complete</span></div></div></div></div>`; }
+        function questionForStep() { if (state.step < participantQuestions.length) return participantQuestions[state.step]; const offset = state.step - participantQuestions.length; if (offset < 30) { const type = offset < 10 ? 'neuropathy' : offset < 20 ? 'retinopathy' : 'nephropathy'; const index = offset % 10; return { id: `${type}_${index}`, type: 'symptom', category: type, label: symptomSets[type][index], labelTa: tamilSymptomSets[type][index], options: ['Yes', 'No'] }; } return { ...perceptionQuestions[offset - 30], type: 'perception' }; }
+        function totalSteps() { return participantQuestions.length + 30 + perceptionQuestions.length; }
+        function currentValue(q) { if (q.type === 'symptom') return state.assessment[q.category][Number(q.id.split('_')[1])]; if (q.type === 'perception') return state.assessment.perception[Number(q.id.split('_')[1])]; return state.assessment.participant[q.id] ?? state.assessment.clinical[q.id]; }
+        function setCurrentValue(q, value) { if (q.type === 'symptom') state.assessment[q.category][Number(q.id.split('_')[1])] = value === 'Yes'; else if (q.type === 'perception') state.assessment.perception[Number(q.id.split('_')[1])] = value; else if (['bmi', 'bp'].includes(q.id)) state.assessment.clinical[q.id] = value; else state.assessment.participant[q.id] = value; }
+        function sectionForStep() { if (state.step < participantQuestions.length) return t('participant'); if (state.step < participantQuestions.length + 10) return t('neuropathy'); if (state.step < participantQuestions.length + 20) return t('retinopathy'); if (state.step < participantQuestions.length + 30) return t('nephropathy'); return t('perception'); }
+        function assessmentView() { const q = questionForStep(); const val = currentValue(q); const progress = Math.round((state.step / totalSteps()) * 100); const isSymptom = q.type === 'symptom'; const isPerception = q.type === 'perception'; const options = q.options || []; return `<div class="assessment-layout"><div class="assessment-head"><div class="assessment-title"><span class="eyebrow">${sectionForStep()}</span><h1>${t('riskAssessment')}</h1><p>${state.language === 'ta' ? 'ஒரு நேரத்தில் ஒரு தெளிவான கேள்வி. பதில்களைத் திருத்தலாம்.' : 'One clear prompt at a time. Answers remain editable.'}</p></div><div class="step-count"><strong>${displayNumber(Math.min(state.step + 1, totalSteps()))}</strong> / ${displayNumber(totalSteps())}</div></div><div class="conversation"><div class="system-note"><span class="system-orb">✦</span><span>${isPerception ? (state.language === 'ta' ? 'பங்கேற்பாளரின் கருத்துக்கு மிகவும் பொருத்தமான விருப்பத்தைத் தேர்ந்தெடுக்கவும்.' : 'Select the option that best reflects the participant’s view.') : isSymptom ? (state.language === 'ta' ? 'பங்கேற்பாளர் தற்போது அனுபவிக்கும் அறிகுறிக்கு ஏற்ற பதிலைத் தேர்ந்தெடுக்கவும்.' : 'Select the answer that best describes the participant.') : (state.language === 'ta' ? 'பங்கேற்பாளரின் பதில் அல்லது கிடைக்கும் மருத்துவப் பதிவைப் பயன்படுத்தவும்.' : 'Use the participant’s response or available clinical record.')}</span></div><article class="question-card"><div class="question-label">${t('question')} ${displayNumber(state.step + 1)} · ${sectionForStep()}</div><h2>${displayQuestionText(q)}</h2><p>${isSymptom ? (state.language === 'ta' ? 'அறிகுறிகளை அடிப்படையாகக் கொண்ட திரையிடல் கேள்வி.' : 'Symptom-based screening question.') : isPerception ? (state.language === 'ta' ? 'கீழ்க்கண்ட கூற்றைப் பற்றி உங்கள் கருத்தைத் தெரிவிக்கவும்.' : 'Please indicate your view of the statement below.') : (state.language === 'ta' ? 'பங்கேற்பாளரின் பதில் அல்லது கிடைக்கும் மருத்துவப் பதிவைப் பயன்படுத்தவும்.' : 'Use the participant’s response or available clinical record.')}</p>${q.type === 'choice' || isSymptom || isPerception ? `<div class="answer-grid">${options.map((option, i) => `<button type="button" class="answer-button ${String(val) === String(option) || (typeof val === 'boolean' && String(val) === (option === 'Yes' ? 'true' : 'false')) ? 'selected' : ''}" data-answer="${esc(option)}"><span class="answer-index">${displayNumber(i + 1)}</span>${esc(displayOption(option))}</button>`).join('')}</div>` : `<input class="text-input" id="currentInput" type="${q.type === 'number' ? 'number' : 'text'}" value="${esc(val || '')}" placeholder="${esc(displayPlaceholder(q))}" autofocus>`}<div class="conversation-footer"><button type="button" class="back-button" data-action="back">← ${t('back')}</button><button type="button" class="continue-button ${val != null && val !== '' ? 'ready' : ''}" data-action="continue" ${val == null || val === '' ? (q.optional ? '' : 'disabled') : ''}>${state.step === totalSteps() - 1 ? t('review') : t('continue')} →</button></div></article><div style="margin-top:20px"><div class="progress-track"><div class="progress-bar" style="width:${progress}%"></div></div><div class="progress-meta"><span>${sectionForStep()}</span><span>${state.language === 'ta' ? toTamilDigits(progress) + '% முடிந்தது' : progress + '% complete'}</span></div></div></div></div>`; }
         function translateSymptom(text) {
             const map = {
                 'Does the participant experience pain in their legs or feet?': 'உங்கள் கால்களில் அல்லது பாதங்களில் வலி உள்ளதா?',
@@ -1550,23 +1685,27 @@
         function participantsView() { return `<div class="section-heading" style="margin-top:0"><div><span class="eyebrow">RESEARCH RECORDS</span><h2>${t('participants')}</h2><p>Participant identifiers remain local to this browser.</p></div></div>${state.completed.length ? assessmentRows(state.completed) : emptyView(t('participants'))}`; }
         function educationView() { return `<div class="section-heading" style="margin-top:0"><div><span class="eyebrow">PREVENTION LIBRARY</span><h2>${t('educationTitle')}</h2><p>Short educational modules to pair with a screening review.</p></div></div>${educationCards({})}<div class="notice" style="margin-top:18px">Educational content is placeholder copy for the prototype. Replace with approved research media before clinical use.</div>`; }
         function emptyView(title) { return `<div class="empty-state"><h2>${esc(title)}</h2><p>${t('noDataSub')}</p><button class="button-primary" data-action="new">＋ ${t('startAssessment')}</button></div>`; }
-        function contextView() { const c = $('#contextContent'); if (state.view === 'assessment' && state.assessment) { const p = state.assessment.participant; const progress = Math.round((state.step / totalSteps()) * 100); c.innerHTML = `<div class="context-card"><span class="eyebrow">CURRENT SECTION</span><h3>${sectionForStep()}</h3><p>${state.step < participantQuestions.length ? 'Participant information' : 'Symptom-based screening'}</p><div class="progress-track"><div class="progress-bar" style="width:${progress}%"></div></div><div class="progress-meta"><span>${state.step + 1} / ${totalSteps()}</span><span>${progress}%</span></div></div><div class="context-card"><span class="eyebrow">PARTICIPANT SUMMARY</span><div class="summary-line"><span>Record</span><strong>${esc(p.participantNumber || 'New')}</strong></div><div class="summary-line"><span>Age</span><strong>${esc(p.age || '—')}</strong></div><div class="summary-line"><span>Duration</span><strong>${esc(p.duration || '—')}</strong></div></div><div class="context-card"><span class="eyebrow">SCREENING NOTE</span><p>Risk levels are based on the supplied symptom scoring bands and are intended for review, not diagnosis.</p></div>`; } else c.innerHTML = `<div class="context-card"><span class="eyebrow">WORKSPACE NOTE</span><h3>Measured, attentive, trustworthy.</h3><p>Use this prototype to walk through the research workflow before connecting approved data and media services.</p></div><div class="context-card"><span class="eyebrow">QUICK STATUS</span><div class="summary-line"><span>Language</span><strong>${state.language === 'en' ? 'English' : 'தமிழ்'}</strong></div><div class="summary-line"><span>Theme</span><strong>${state.theme === 'dark' ? 'Dark' : 'Light'}</strong></div></div>`; }
+        function contextView() { const c = $('#contextContent'); if (state.view === 'assessment' && state.assessment) { const p = state.assessment.participant; const progress = Math.round((state.step / totalSteps()) * 100); c.innerHTML = `<div class="context-card"><span class="eyebrow">CURRENT SECTION</span><h3>${sectionForStep()}</h3><p>${state.step < participantQuestions.length ? (state.language === 'ta' ? 'பங்கேற்பாளர் தகவல்கள்' : 'Participant information') : state.step < participantQuestions.length + 30 ? (state.language === 'ta' ? 'அறிகுறி அடிப்படையிலான திரையிடல்' : 'Symptom-based screening') : (state.language === 'ta' ? 'செயலி கருத்து' : 'App perception')}</p><div class="progress-track"><div class="progress-bar" style="width:${progress}%"></div></div><div class="progress-meta"><span>${displayNumber(state.step + 1)} / ${displayNumber(totalSteps())}</span><span>${progress}%</span></div></div><div class="context-card"><span class="eyebrow">PARTICIPANT SUMMARY</span><div class="summary-line"><span>Record</span><strong>${esc(p.participantNumber || 'New')}</strong></div><div class="summary-line"><span>Age</span><strong>${esc(state.language === 'ta' ? toTamilDigits(p.age || '—') : (p.age || '—'))}</strong></div><div class="summary-line"><span>Duration</span><strong>${esc(p.duration || '—')}</strong></div></div><div class="context-card"><span class="eyebrow">SCREENING NOTE</span><p>Risk levels are based on the supplied symptom scoring bands and are intended for review, not diagnosis.</p></div>`; } else c.innerHTML = `<div class="context-card"><span class="eyebrow">WORKSPACE NOTE</span><h3>Measured, attentive, trustworthy.</h3><p>Use this prototype to walk through the research workflow before connecting approved data and media services.</p></div><div class="context-card"><span class="eyebrow">QUICK STATUS</span><div class="summary-line"><span>Language</span><strong>${state.language === 'en' ? 'English' : 'தமிழ்'}</strong></div><div class="summary-line"><span>Theme</span><strong>${state.theme === 'dark' ? 'Dark' : 'Light'}</strong></div></div>`; }
         function bindAdvanceButton(el) { let busy = false; const run = event => { if (event) event.preventDefault(); if (busy) return; busy = true; advance(); window.setTimeout(() => { busy = false; }, 260); }; el.onclick = run; el.onpointerup = event => { if (event.pointerType === 'touch' || event.pointerType === 'pen') run(event); }; }
         function bindViewEvents() {
             $$('.nav-item[data-view]').forEach(el => el.onclick = () => setView(el.dataset.view)); $$('[data-action="new"]').forEach(el => el.onclick = startAssessment); $$('[data-action="soon"]').forEach(el => el.onclick = () => showToast(t('soon'))); $$('[data-action="notice"]').forEach(el => el.onclick = () => showToast(t('notice'))); $$('[data-action="review"]').forEach(el => el.onclick = () => { state.view = 'review'; render(); });
             $$('[data-action="results"]').forEach(el => el.onclick = () => { state.view = 'results'; renderResults(); }); $$('[data-action="save"]').forEach(el => el.onclick = saveAssessment); $$('[data-view="reports"]').forEach(el => el.onclick = () => setView('reports'));
             if (state.view === 'assessment') { $$('.answer-button').forEach(btn => btn.type = 'button'); $$('.answer-button').forEach(btn => btn.onclick = event => { event.preventDefault(); const q = questionForStep(); setCurrentValue(q, btn.dataset.answer); render(); }); const input = $('#currentInput'); if (input) { input.oninput = () => { setCurrentValue(questionForStep(), input.value); const next = $('[data-action="continue"]'); if (next) { next.disabled = !input.value.trim(); next.classList.toggle('ready', Boolean(input.value.trim())); } }; input.onkeydown = e => { if (e.key === 'Enter' && input.value.trim()) { e.preventDefault(); advance(); } } } $$('[data-action="continue"]').forEach(el => { el.type = 'button'; bindAdvanceButton(el); }); $$('[data-action="back"]').forEach(el => { el.type = 'button'; el.onclick = () => { if (state.step > 0) { state.step--; render(); } else setView('dashboard'); }; }); }
         }
-        function advance() { const q = questionForStep(); const value = currentValue(q); const unanswered = value === undefined || value === null || value === ''; if (unanswered) { showToast(t('required')); return; } if (state.step < totalSteps() - 1) { state.step++; render(); } else { state.view = 'review'; render(); } }
+        function advance() { const q = questionForStep(); const value = currentValue(q); const unanswered = value === undefined || value === null || value === ''; if (unanswered && !q.optional) { showToast(t('required')); return; } if (state.step < totalSteps() - 1) { state.step++; render(); } else { state.view = 'review'; render(); } }
         function renderResults() { $('#viewRoot').innerHTML = resultsView(); contextView(); bindViewEvents(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
         function saveAssessment() { state.assessment.completedAt = new Date().toISOString(); state.completed.push(state.assessment); localStorage.setItem('diabetesAssessments', JSON.stringify(state.completed)); showToast(t('saved')); setView('reports'); }
 
         $('#languageToggle').onclick = () => { state.language = state.language === 'en' ? 'ta' : 'en'; updateLanguage(); };
         $('#themeToggle').onclick = () => { state.theme = state.theme === 'dark' ? 'light' : 'dark'; localStorage.setItem('theme', state.theme); applyTheme(); };
-        $('#mobileMenu').onclick = () => $('.sidebar').classList.toggle('open');
+        $('#mobileMenu').onclick = () => { $('.sidebar').classList.toggle('open'); $('#sidebarBackdrop').classList.toggle('show'); };
+        $('#sidebarBackdrop').onclick = () => { $('.sidebar').classList.remove('open'); $('#sidebarBackdrop').classList.remove('show'); };
+        $$('.nav-item[data-view]').forEach(el => el.addEventListener('click', () => { $('.sidebar').classList.remove('open'); $('#sidebarBackdrop').classList.remove('show'); }));
         $('#collapseContext').onclick = () => $('#contextPanel').classList.toggle('collapsed');
 
         state.theme = localStorage.getItem('theme') || 'light';
+        state.language = localStorage.getItem('language') || state.language || 'en';
+        applyLanguageFont();
         render();
     </script>
 </body>
