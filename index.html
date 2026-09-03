@@ -6,65 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description"
         content="AI-Based Diabetes Complication Risk Prediction App — a guided screening and risk assessment prototype.">
-    <title>Diabetes Risk AI</title>
+    <title>Diabetes Complication Risk Assessment</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+Tamil:wght@400;500;600;700;800&family=Noto+Serif+Tamil:wght@400;600&display=swap"
         rel="stylesheet">
-</head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.37.11/docxtemplater.js"></script>
+    <script src="https://unpkg.com/pizzip@3.1.4/dist/pizzip.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.js"></script>
 
-<body>
-    <div class="app-shell" id="appShell">
-        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
-        <aside class="sidebar" aria-label="Primary navigation">
-            <div class="brand-lockup">
-                <div class="brand-mark" aria-hidden="true"><span></span><i></i></div>
-                <div><strong>Diabetes Risk</strong><em>AI</em></div>
-            </div>
-            <div class="sidebar-caption">Clinical workspace</div>
-            <nav class="nav-list">
-                <button class="nav-item active" data-view="dashboard"><span class="nav-icon">⌂</span><span
-                        data-i18n="dashboard">Dashboard</span></button>
-                <button class="nav-item" data-view="assessment"><span class="nav-icon">＋</span><span
-                        data-i18n="newAssessment">New assessment</span></button>
-                <button class="nav-item" data-view="participants"><span class="nav-icon">◉</span><span
-                        data-i18n="participants">Participants</span></button>
-                <button class="nav-item" data-view="reports"><span class="nav-icon">▤</span><span
-                        data-i18n="reports">Reports</span></button>
-                <button class="nav-item" data-view="education"><span class="nav-icon">▱</span><span
-                        data-i18n="education">Education</span></button>
-            </nav>
-            <div class="sidebar-footer">
-                <button class="nav-item muted-action" data-action="soon"><span class="nav-icon">⚙</span><span
-                        data-i18n="settings">Settings</span></button>
-                <div class="profile-mini"><span class="avatar">DR</span><span><b>Dr. R. Meena</b><small>Research
-                            clinician</small></span><span class="dots">•••</span></div>
-            </div>
-        </aside>
-
-        <main class="main-canvas">
-            <header class="topbar">
-                <button class="mobile-menu" id="mobileMenu" aria-label="Open navigation">☰</button>
-                <div class="breadcrumb"><span class="eyebrow">RESEARCH WORKSPACE</span><span
-                        class="crumb-separator">/</span><span id="breadcrumbText">Dashboard</span></div>
-                <div class="top-actions">
-                    <button class="language-toggle" id="languageToggle"
-                        aria-label="Toggle language"><b>EN</b><span>/</span><span>தமிழ்</span></button>
-                    <button class="icon-button" id="themeToggle" aria-label="Toggle theme">☾</button>
-                    <button class="help-button" data-action="notice">?</button>
-                </div>
-            </header>
-            <div id="viewRoot" class="view-root"></div>
-        </main>
-
-        <aside class="context-panel" id="contextPanel" aria-label="Assessment context">
-            <div class="context-top"><span class="eyebrow">ASSESSMENT CONTEXT</span><button id="collapseContext"
-                    class="context-close" aria-label="Collapse context panel">×</button></div>
-            <div id="contextContent"></div>
-        </aside>
-    </div>
-    <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <style>
         /* Quiet Clinical Atelier — warm research paper, ink navy, mineral teal, editorial hierarchy. */
         :root {
@@ -104,16 +56,18 @@
         }
 
         * {
-            box-sizing: border-box
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            margin: 0;
             background: var(--bg);
             color: var(--ink);
             font-family: Manrope, system-ui, sans-serif;
             font-size: 14px;
-            line-height: 1.55
+            line-height: 1.55;
+            transition: background-color 0.3s var(--ease), color 0.3s var(--ease);
         }
 
         button,
@@ -164,10 +118,15 @@
         .app-shell {
             min-height: 100vh;
             display: grid;
-            grid-template-columns: 242px minmax(0, 1fr) 292px;
+            grid-template-columns: 260px minmax(0, 1fr) 292px;
             max-width: 1680px;
             margin: 0 auto;
-            box-shadow: var(--shadow)
+            box-shadow: var(--shadow);
+            transition: grid-template-columns 0.3s var(--ease);
+        }
+        
+        .app-shell.context-collapsed {
+            grid-template-columns: 260px minmax(0, 1fr) 0px;
         }
 
         @media(min-width:1681px) {
@@ -176,73 +135,96 @@
             }
         }
 
+        /* --- Stylish & Attractive Sidebar --- */
         .sidebar {
-            background: var(--ink);
+            background: linear-gradient(180deg, #112232 0%, #182e42 100%);
             color: #eff3ee;
-            padding: 28px 18px 20px;
+            padding: 24px 16px;
             display: flex;
             flex-direction: column;
-            min-height: 100vh
+            min-height: 100vh;
+            transition: background 0.3s var(--ease);
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+            position: relative;
+        }
+
+        html.dark .sidebar {
+            background: linear-gradient(180deg, #09131a 0%, #0f1c24 100%);
         }
 
         .brand-lockup {
             display: flex;
             align-items: center;
-            gap: 11px;
-            padding: 0 10px 34px
+            gap: 12px;
+            padding: 10px 12px 28px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 20px;
         }
 
         .brand-lockup strong {
             display: block;
             font-family: "DM Serif Display", serif;
-            font-size: 18px;
+            font-size: 19px;
             font-weight: 400;
-            letter-spacing: .01em
+            letter-spacing: .02em;
+            color: #ffffff;
+            line-height: 1.1;
         }
 
         .brand-lockup em {
             font-style: normal;
             font-size: 10px;
-            letter-spacing: .2em;
-            color: #83d2c2
+            letter-spacing: .22em;
+            color: #2c8a83;
+            background: rgba(44, 138, 131, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 800;
+            display: inline-block;
+            margin-top: 3px;
         }
 
         .brand-mark {
             position: relative;
-            width: 32px;
-            height: 32px;
-            border: 1.5px solid #79c8bb;
-            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, rgba(44, 138, 131, 0.3), rgba(44, 138, 131, 0.05));
+            border: 1.5px solid #2c8a83;
+            border-radius: 12px;
             display: grid;
-            place-items: center
+            place-items: center;
+            box-shadow: 0 4px 12px rgba(44, 138, 131, 0.25);
+            flex-shrink: 0;
         }
 
         .brand-mark:before,
         .brand-mark:after {
             content: "";
             position: absolute;
-            background: #79c8bb
+            background: #62c2b1
         }
 
         .brand-mark:before {
-            width: 13px;
-            height: 1px
+            width: 14px;
+            height: 2px;
+            border-radius: 2px;
         }
 
         .brand-mark:after {
-            width: 1px;
-            height: 13px
+            width: 2px;
+            height: 14px;
+            border-radius: 2px;
         }
 
         .brand-mark span {
             position: absolute;
-            width: 7px;
-            height: 10px;
-            border: 1.5px solid #79c8bb;
-            border-radius: 8px 2px 8px 2px;
-            transform: rotate(35deg);
-            top: 4px;
-            right: 3px
+            width: 8px;
+            height: 8px;
+            background: #62c2b1;
+            border-radius: 50%;
+            top: 5px;
+            right: 5px;
+            box-shadow: 0 0 6px #62c2b1;
         }
 
         .sidebar-caption,
@@ -255,98 +237,158 @@
         }
 
         .sidebar-caption {
-            color: #89a3a7;
-            padding: 0 12px 12px
+            color: #688292;
+            padding: 0 12px 10px;
+            font-size: 9.5px;
+            letter-spacing: 0.18em;
         }
 
         .nav-list {
             display: grid;
-            gap: 4px
+            gap: 6px;
         }
 
         .nav-item {
             width: 100%;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
             text-align: left;
-            padding: 12px;
+            padding: 11px 14px;
             border-radius: 10px;
-            color: #abc0c1;
-            transition: background .2s var(--ease), color .2s var(--ease), transform .2s var(--ease)
+            color: #9ab1bf;
+            font-weight: 600;
+            font-size: 13.5px;
+            transition: all .2s var(--ease);
+            position: relative;
         }
 
         .nav-item:hover {
-            background: rgba(255, 255, 255, .08);
-            color: #fff
+            background: rgba(255, 255, 255, 0.06);
+            color: #ffffff;
+            transform: translateX(3px);
         }
 
         .nav-item.active {
-            background: #2d686a;
-            color: #fff
+            background: linear-gradient(90deg, rgba(44, 138, 131, 0.85) 0%, rgba(36, 115, 110, 0.95) 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(44, 138, 131, 0.35);
+            font-weight: 700;
+        }
+
+        .nav-item.active::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 25%;
+            bottom: 25%;
+            width: 3px;
+            background: #ffffff;
+            border-radius: 0 3px 3px 0;
         }
 
         .nav-icon {
             font-size: 16px;
-            width: 18px;
-            text-align: center;
-            color: #87c8bd
+            width: 22px;
+            height: 22px;
+            display: grid;
+            place-items: center;
+            color: #2c8a83;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            transition: all 0.2s var(--ease);
+        }
+
+        .nav-item:hover .nav-icon {
+            background: rgba(255, 255, 255, 0.12);
+            color: #2c8a83;
+        }
+
+        .nav-item.active .nav-icon {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.2);
         }
 
         .sidebar-footer {
-            margin-top: auto
+            margin-top: auto;
+            padding-top: 16px;
         }
 
         .muted-action {
-            margin-bottom: 18px
+            margin-bottom: 16px;
+            border: 1px dashed rgba(255, 255, 255, 0.12);
+        }
+        .muted-action:hover {
+            border-style: solid;
+            border-color: rgba(44, 138, 131, 0.5);
         }
 
         .profile-mini {
-            border-top: 1px solid rgba(255, 255, 255, .12);
-            padding: 18px 8px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 16px 8px 4px;
             display: flex;
             align-items: center;
-            gap: 9px
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 12px;
+            padding: 12px;
+            cursor: pointer;
+            transition: background 0.2s var(--ease);
+        }
+
+        .profile-mini:hover {
+            background: rgba(0, 0, 0, 0.25);
         }
 
         .profile-mini b,
         .profile-mini small {
-            display: block
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 120px;
         }
 
         .profile-mini b {
-            font-size: 11px;
-            color: #f3f1e8
+            font-size: 12px;
+            color: #ffffff;
+            font-weight: 700;
         }
 
         .profile-mini small {
-            font-size: 10px;
-            color: #91a9ad;
-            margin-top: 2px
+            font-size: 10.5px;
+            color: #819cae;
+            margin-top: 1px;
         }
 
         .avatar {
             display: grid;
             place-items: center;
-            background: #d8eee8;
-            color: #246964;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            font-size: 10px;
-            font-weight: 800
+            background: linear-gradient(135deg, #2c8a83 0%, #1d5b57 100%);
+            color: #ffffff;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 800;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            flex-shrink: 0;
         }
 
         .dots {
             margin-left: auto;
-            color: #789198;
-            letter-spacing: 2px
+            color: #647f91;
+            font-size: 14px;
         }
 
         .main-canvas {
             min-width: 0;
             min-height: 100vh;
-            background: var(--bg)
+            background: var(--bg);
+            transition: background-color 0.3s var(--ease);
+            display: flex;
+            flex-direction: column;
         }
 
         .topbar {
@@ -360,7 +402,8 @@
             top: 0;
             background: color-mix(in srgb, var(--bg) 92%, transparent);
             backdrop-filter: blur(16px);
-            z-index: 5
+            z-index: 5;
+            transition: border-color 0.3s var(--ease), background-color 0.3s var(--ease);
         }
 
         .breadcrumb {
@@ -426,14 +469,24 @@
         .view-root {
             max-width: 1050px;
             margin: 0 auto;
-            padding: 50px 42px 80px
+            padding: 50px 42px 80px;
+            width: 100%;
+            flex: 1;
         }
 
         .context-panel {
             border-left: 1px solid var(--line);
             padding: 34px 24px;
             background: var(--surface);
-            transition: transform .25s var(--ease)
+            transition: transform .25s var(--ease), background-color 0.3s var(--ease), border-color 0.3s var(--ease);
+            overflow-y: auto;
+        }
+        
+        .app-shell.context-collapsed .context-panel {
+             transform: translateX(100%);
+             padding: 0;
+             border: 0;
+             opacity: 0;
         }
 
         .context-panel.collapsed {
@@ -498,10 +551,13 @@
         .hero-art {
             min-height: 330px;
             border-radius: 4px;
-            background: linear-gradient(145deg, rgba(44, 138, 131, .16), rgba(255, 253, 250, .35)), url('/manus-storage/diabetes-risk-ai-texture_686c1f27.png') center/cover;
+            background: linear-gradient(145deg, rgba(44, 138, 131, .16), rgba(255, 253, 250, .35));
             position: relative;
             overflow: hidden;
-            border: 1px solid rgba(44, 138, 131, .3)
+            border: 1px solid rgba(44, 138, 131, .3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .hero-art:before {
@@ -534,7 +590,9 @@
             padding: 13px 18px;
             font-weight: 800;
             transition: transform .16s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease);
-            box-shadow: 0 7px 16px rgba(44, 138, 131, .18)
+            box-shadow: 0 7px 16px rgba(44, 138, 131, .18);
+            display: inline-block;
+            text-align: center;
         }
 
         .button-primary:hover {
@@ -550,11 +608,17 @@
         .button-secondary {
             padding: 13px 18px;
             color: var(--ink-2);
-            font-weight: 700
+            font-weight: 700;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            display: inline-block;
+            text-align: center;
+            transition: all .2s var(--ease);
         }
 
         .button-secondary:hover {
-            color: var(--teal)
+            color: var(--teal);
+            border-color: var(--teal);
         }
 
         .notice {
@@ -597,7 +661,8 @@
             border: 1px solid var(--line);
             border-radius: 6px;
             box-shadow: none;
-            position: relative
+            position: relative;
+            transition: background-color 0.3s var(--ease), border-color 0.3s var(--ease);
         }
 
         .kpi-card:after,
@@ -635,7 +700,10 @@
 
         .assessment-list {
             display: grid;
-            gap: 8px
+            gap: 8px;
+            border-top: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+            padding: 10px 0;
         }
 
         .assessment-row {
@@ -647,7 +715,14 @@
             background: var(--surface);
             border-bottom: 1px solid var(--line);
             border-radius: 0;
-            position: relative
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+        }
+        
+        .assessment-row:hover {
+             transform: translateY(-2px);
+             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
 
         .assessment-row:not(.header):before {
@@ -661,11 +736,6 @@
             opacity: .35
         }
 
-        .assessment-list {
-            border-top: 1px solid var(--line);
-            border-bottom: 1px solid var(--line)
-        }
-
         .assessment-row.header {
             background: transparent;
             border: 0;
@@ -674,7 +744,12 @@
             font-size: 10px;
             text-transform: uppercase;
             letter-spacing: .12em;
-            font-weight: 800
+            font-weight: 800;
+            cursor: default;
+        }
+        .assessment-row.header:hover {
+             transform: none;
+             box-shadow: none;
         }
 
         .person {
@@ -891,7 +966,8 @@
             padding: 28px;
             box-shadow: 0 14px 40px rgba(24, 47, 64, .06);
             animation: rise .28s var(--ease);
-            position: relative
+            position: relative;
+            margin-bottom: 20px;
         }
 
         .question-card:before {
@@ -969,7 +1045,8 @@
             border-radius: 10px;
             padding: 14px;
             color: var(--ink);
-            outline: none
+            outline: none;
+            transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
         }
 
         .text-input:focus,
@@ -1042,6 +1119,12 @@
             grid-template-columns: 1.1fr .9fr;
             gap: 16px
         }
+        
+        .reports-grid {
+             display: grid;
+             grid-template-columns: 1fr;
+             gap: 20px;
+        }
 
         .panel-card {
             padding: 22px
@@ -1064,14 +1147,21 @@
         .review-item:last-child {
             border-bottom: 0
         }
+        
+        .review-item strong {
+             flex: 1;
+        }
 
         .review-item span {
-            color: var(--muted)
+            color: var(--muted);
+            flex-shrink: 0;
         }
 
         .risk-card {
             position: relative;
-            overflow: hidden
+            overflow: hidden;
+            text-align: center;
+            padding: 30px;
         }
 
         .risk-card:before {
@@ -1087,14 +1177,15 @@
         }
 
         .risk-score {
-            font: 400 58px "DM Serif Display", serif
+            font: 400 58px "DM Serif Display", serif;
+            margin-bottom: 10px;
         }
 
         .risk-level {
             display: inline-flex;
-            padding: 6px 9px;
+            padding: 6px 12px;
             border-radius: 5px;
-            font-size: 10px;
+            font-size: 12px;
             font-weight: 800;
             letter-spacing: .1em
         }
@@ -1117,72 +1208,106 @@
         .recommendation {
             margin-top: 18px;
             background: var(--surface-2);
-            padding: 13px;
-            font-size: 12px;
-            color: var(--ink-2)
+            padding: 15px;
+            font-size: 13px;
+            color: var(--ink-2);
+            border-radius: 8px;
+            border-left: 4px solid var(--teal);
         }
 
         .video-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 12px
+            gap: 16px;
+            margin-top: 20px;
         }
 
         .video-card {
             background: var(--surface);
             border: 1px solid var(--line);
             border-radius: 14px;
-            overflow: hidden
+            overflow: hidden;
+            transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .video-card:hover {
+             transform: translateY(-4px);
+             box-shadow: 0 10px 20px rgba(0,0,0,0.08);
         }
 
         .video-art {
-            height: 110px;
+            height: 140px;
             background: linear-gradient(135deg, var(--teal-soft), var(--surface-2));
-            position: relative
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .video-art:after {
             content: "▶";
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            width: 34px;
-            height: 34px;
-            border: 1px solid var(--teal);
+            width: 44px;
+            height: 44px;
+            border: 2px solid var(--teal);
+            background: rgba(255,255,255,0.8);
             border-radius: 50%;
             display: grid;
             place-items: center;
             color: var(--teal);
-            font-size: 12px
+            font-size: 16px;
+            padding-left: 3px;
+        }
+        
+        html.dark .video-art:after {
+             background: rgba(0,0,0,0.4);
         }
 
         .video-copy {
-            padding: 14px
+            padding: 16px;
+            flex: 1;
         }
 
         .video-copy strong {
             display: block;
             font: 400 18px "DM Serif Display", serif;
-            margin-bottom: 5px
+            margin-bottom: 8px;
+            line-height: 1.3;
         }
 
         .video-copy small {
-            color: var(--muted)
+            color: var(--muted);
+            display: block;
         }
 
         .form-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 13px
+            gap: 20px
+        }
+        
+        .form-section-title {
+             grid-column: 1 / -1;
+             font: 400 24px "DM Serif Display", serif;
+             margin-top: 20px;
+             margin-bottom: 10px;
+             border-bottom: 1px solid var(--line);
+             padding-bottom: 10px;
+        }
+
+        .field {
+             display: flex;
+             flex-direction: column;
         }
 
         .field label {
             display: block;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 800;
             color: var(--ink-2);
-            margin-bottom: 6px
+            margin-bottom: 8px
         }
 
         .field.full {
@@ -1225,6 +1350,186 @@
             opacity: 1;
             transform: translate(-50%, 0)
         }
+        
+        /* Modal for videos */
+        .modal-overlay {
+             position: fixed;
+             inset: 0;
+             background: rgba(0,0,0,0.8);
+             backdrop-filter: blur(4px);
+             z-index: 1000;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             opacity: 0;
+             pointer-events: none;
+             transition: opacity 0.3s var(--ease);
+        }
+        
+        .modal-overlay.show {
+             opacity: 1;
+             pointer-events: auto;
+        }
+        
+        .modal-content {
+             background: var(--surface);
+             border-radius: 12px;
+             width: 90%;
+             max-width: 800px;
+             max-height: 90vh;
+             overflow-y: auto;
+             position: relative;
+             transform: translateY(20px);
+             transition: transform 0.3s var(--ease);
+        }
+        
+        .modal-overlay.show .modal-content {
+             transform: translateY(0);
+        }
+        
+        .modal-header {
+             padding: 20px;
+             border-bottom: 1px solid var(--line);
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+        }
+        
+        .modal-header h3 {
+             font: 400 24px "DM Serif Display", serif;
+             margin: 0;
+        }
+        
+        .modal-close {
+             font-size: 24px;
+             background: none;
+             border: none;
+             cursor: pointer;
+             color: var(--ink);
+        }
+        
+        .modal-body {
+             padding: 20px;
+        }
+        
+        .video-placeholder {
+             width: 100%;
+             aspect-ratio: 16/9;
+             background: #000;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             color: #fff;
+             margin-bottom: 20px;
+             border-radius: 8px;
+        }
+
+        .settings-panel {
+             max-width: 600px;
+             margin: 0 auto;
+        }
+        
+        .settings-group {
+             background: var(--surface);
+             border: 1px solid var(--line);
+             border-radius: 8px;
+             padding: 20px;
+             margin-bottom: 20px;
+        }
+        
+        .settings-row {
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+             padding: 15px 0;
+             border-bottom: 1px solid var(--line);
+        }
+        .settings-row:last-child {
+             border-bottom: none;
+        }
+        
+        .toggle-switch {
+             position: relative;
+             display: inline-block;
+             width: 50px;
+             height: 26px;
+        }
+        
+        .toggle-switch input {
+             opacity: 0;
+             width: 0;
+             height: 0;
+        }
+        
+        .toggle-slider {
+             position: absolute;
+             cursor: pointer;
+             top: 0;
+             left: 0;
+             right: 0;
+             bottom: 0;
+             background-color: var(--line);
+             transition: .4s;
+             border-radius: 34px;
+        }
+        
+        .toggle-slider:before {
+             position: absolute;
+             content: "";
+             height: 18px;
+             width: 18px;
+             left: 4px;
+             bottom: 4px;
+             background-color: white;
+             transition: .4s;
+             border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+             background-color: var(--teal);
+        }
+        
+        input:checked + .toggle-slider:before {
+             transform: translateX(24px);
+        }
+
+        /* Export Report Specific Styles for PDF Generation */
+        #report-export-container {
+             display: none; /* Hide from normal view, only used for rendering */
+             background: white;
+             color: black;
+             padding: 40px;
+             font-family: Arial, sans-serif;
+        }
+        
+        .report-section {
+             margin-bottom: 30px;
+        }
+        
+        .report-title {
+             text-align: center;
+             font-size: 24px;
+             font-weight: bold;
+             margin-bottom: 20px;
+             border-bottom: 2px solid #2c8a83;
+             padding-bottom: 10px;
+        }
+        
+        .report-table {
+             width: 100%;
+             border-collapse: collapse;
+             margin-bottom: 20px;
+        }
+        
+        .report-table th, .report-table td {
+             border: 1px solid #ddd;
+             padding: 8px;
+             text-align: left;
+        }
+        
+        .report-table th {
+             background-color: #f2f2f2;
+        }
 
         @keyframes rise {
             from {
@@ -1240,7 +1545,7 @@
 
         @media(max-width:1150px) {
             .app-shell {
-                grid-template-columns: 220px minmax(0, 1fr)
+                grid-template-columns: 240px minmax(0, 1fr)
             }
 
             .context-panel {
@@ -1264,7 +1569,7 @@
             .sidebar {
                 position: fixed;
                 inset: 0 auto 0 0;
-                width: 250px;
+                width: 260px;
                 transform: translateX(-102%);
                 transition: transform .25s var(--ease);
                 z-index: 30;
@@ -1342,7 +1647,8 @@
             }
 
             .review-grid,
-            .result-grid {
+            .result-grid,
+            .form-grid {
                 grid-template-columns: 1fr
             }
 
@@ -1402,7 +1708,6 @@
             }
 
             .answer-grid,
-            .form-grid,
             .video-grid {
                 grid-template-columns: 1fr
             }
@@ -1415,26 +1720,30 @@
                 z-index: 3
             }
 
-            .progress-meta {
-                font-size: 10px
-            }
-        }
-
-        @media(max-width:380px) {
-            .top-actions .icon-button {
-                display: none
+            .topbar {
+                padding: 0 14px
             }
 
             .language-toggle {
                 font-size: 10px
             }
 
-            .conversation-footer {
-                flex-direction: column-reverse
+            .help-button {
+                display: none
+            }
+        }
+
+        @media(max-width:380px) {
+            .kpi-grid {
+                grid-template-columns: 1fr
             }
 
-            .conversation-footer button {
-                width: 100%
+            .hero-panel h1 {
+                font-size: 34px
+            }
+
+            .view-root {
+                padding: 22px 14px 90px
             }
         }
 
@@ -1454,71 +1763,176 @@
                 min-height: 46px
             }
         }
+        
+        /* Utility classes */
+        .hidden { display: none !important; }
+        .text-center { text-align: center; }
+        .mt-4 { margin-top: 1rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mt-8 { margin-top: 2rem; }
+        .mb-8 { margin-bottom: 2rem; }
+        .flex { display: flex; }
+        .justify-between { justify-content: space-between; }
+        .gap-4 { gap: 1rem; }
 
-        @media(prefers-reduced-motion:reduce) {
-
-            *,
-            *:before,
-            *:after {
-                animation: none !important;
-                transition: none !important
-            }
-        }
-        /* Mobile refinements: preserve readable Tamil text and comfortable touch targets. */
-        body { overflow-x: hidden; -webkit-font-smoothing: antialiased; }
-        .question-card h2, .answer-button { overflow-wrap: anywhere; }
-        .answer-button { min-width: 0; }
-        .text-input { width: 100%; min-height: 52px; }
-        .conversation-footer { gap: 10px; }
-        .conversation-footer button { flex: 1; min-height: 48px; }
-        @media (max-width: 820px) {
-            .app-shell { max-width: none; box-shadow: none; }
-            .sidebar { width: min(86vw, 310px); min-height: 100dvh; overflow-y: auto; }
-            .topbar { padding-left: 14px; padding-right: 14px; }
-            .mobile-menu { width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 10px; display: grid; place-items: center; }
-            .view-root { padding-left: clamp(16px, 4vw, 32px); padding-right: clamp(16px, 4vw, 32px); }
-            .assessment-head { gap: 16px; }
-            .assessment-title { min-width: 0; }
-        }
-        @media (max-width: 520px) {
-            body { font-size: 15px; }
-            .view-root { padding: 24px 14px 92px; }
-            .topbar { height: 62px; }
-            .top-actions { gap: 5px; }
-            .language-toggle { padding: 7px 8px; }
-            .icon-button { width: 36px; height: 36px; }
-            .assessment-head { margin-bottom: 24px; }
-            .assessment-title h1 { font-size: clamp(28px, 8vw, 36px); line-height: 1.08; }
-            .assessment-title p { font-size: 13px; }
-            .question-card { padding: 22px 16px; }
-            .question-card h2 { font-size: clamp(25px, 7.8vw, 32px); line-height: 1.2; }
-            .answer-grid { grid-template-columns: 1fr; gap: 9px; }
-            .answer-button { min-height: 52px; padding: 13px 12px; text-align: left; }
-            .conversation-footer { margin-top: 18px; padding-top: 12px; }
-            .progress-meta { font-size: 10px; }
-        }
-        @media (max-width: 380px) {
-            .top-actions .icon-button { display: none; }
-            .language-toggle { font-size: 10px; }
-            .conversation-footer { flex-direction: column-reverse; }
-            .conversation-footer button { width: 100%; }
-        }
     </style>
-    <script>
-        /* Quiet Clinical Atelier — the interaction layer keeps one question in focus and treats risk as screening context, never diagnosis. */
-        const $ = (selector, root = document) => root.querySelector(selector);
-        const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+</head>
 
-        const translations = {
+<body>
+    <div class="app-shell" id="appShell">
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+        <aside class="sidebar" aria-label="Primary navigation">
+            <div class="brand-lockup">
+                <div class="brand-mark" aria-hidden="true"><span></span><i></i></div>
+                <div><strong>Diabetes Risk</strong><em>AI PREDICT</em></div>
+            </div>
+            <div class="sidebar-caption">Clinical workspace</div>
+            <nav class="nav-list">
+                <button class="nav-item active" data-view="dashboard"><span class="nav-icon">⌂</span><span
+                        data-i18n="dashboard">Dashboard</span></button>
+                <button class="nav-item" data-view="assessment"><span class="nav-icon">＋</span><span
+                        data-i18n="newAssessment">New assessment</span></button>
+                <button class="nav-item" data-view="participants"><span class="nav-icon">◉</span><span
+                        data-i18n="participants">Participants</span></button>
+                <button class="nav-item" data-view="reports"><span class="nav-icon">▤</span><span
+                        data-i18n="reports">Reports</span></button>
+                <button class="nav-item" data-view="education"><span class="nav-icon">▱</span><span
+                        data-i18n="education">Education</span></button>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="nav-item muted-action" data-view="settings"><span class="nav-icon">⚙</span><span
+                        data-i18n="settings">Settings</span></button>
+                <div class="profile-mini" onclick="appState.currentView='settings'; renderView();" title="Click to edit profile in Settings">
+                    <span class="avatar" id="sidebarAvatar">DR</span>
+                    <span>
+                        <b id="sidebarUserName">Dr. R. Meena</b>
+                        <small id="sidebarUserRole">Research clinician</small>
+                    </span>
+                    <span class="dots">•••</span>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-canvas">
+            <header class="topbar">
+                <button class="mobile-menu" id="mobileMenu" aria-label="Open navigation">☰</button>
+                <div class="breadcrumb"><span class="eyebrow">RESEARCH WORKSPACE</span><span
+                        class="crumb-separator">/</span><span id="breadcrumbText">Dashboard</span></div>
+                <div class="top-actions">
+                    <button class="language-toggle" id="languageToggle"
+                        aria-label="Toggle language"><b id="langEn">EN</b><span>/</span><span id="langTa">தமிழ்</span></button>
+                    <button class="icon-button" id="themeToggle" aria-label="Toggle theme">☾</button>
+                    <button class="help-button" data-action="notice">?</button>
+                </div>
+            </header>
+            <div id="viewRoot" class="view-root"></div>
+        </main>
+
+        <aside class="context-panel" id="contextPanel" aria-label="Assessment context">
+            <div class="context-top"><span class="eyebrow">ASSESSMENT CONTEXT</span><button id="collapseContext"
+                    class="context-close" aria-label="Collapse context panel">×</button></div>
+            <div id="contextContent"></div>
+        </aside>
+    </div>
+    
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    
+    <!-- Video Modal -->
+    <div class="modal-overlay" id="videoModal">
+         <div class="modal-content">
+              <div class="modal-header">
+                   <h3 id="modalTitle">Video Title</h3>
+                   <button class="modal-close" id="closeModal">×</button>
+              </div>
+              <div class="modal-body">
+                   <div class="video-placeholder">
+                        <p id="modalDesc">Video description goes here. (Simulated Video Playback)</p>
+                   </div>
+                   <div id="modalDetails"></div>
+              </div>
+         </div>
+    </div>
+    
+    <!-- Hidden container for PDF export rendering -->
+    <div id="report-export-container">
+         <div class="report-title">AI-Based Diabetes Complication Risk Prediction Report</div>
+         
+         <div class="report-section">
+              <h3>Participant Information</h3>
+              <table class="report-table" id="export-demographics">
+                   <!-- Populated by JS -->
+              </table>
+         </div>
+         
+         <div class="report-section">
+              <h3>Clinical Information</h3>
+              <table class="report-table" id="export-clinical">
+                   <!-- Populated by JS -->
+              </table>
+         </div>
+         
+         <div class="report-section">
+              <h3>Risk Assessment Results</h3>
+              <table class="report-table" id="export-results">
+                   <!-- Populated by JS -->
+              </table>
+         </div>
+         
+         <div class="report-section">
+              <h3>Recommendations</h3>
+              <p id="export-recommendations"></p>
+         </div>
+         
+         <p style="font-size: 10px; color: #666; margin-top: 40px;">
+              Disclaimer: The result generated by this application is only a predictive assessment and should not be considered as a medical diagnosis. You are strongly advised to consult a physician for proper medical evaluation.
+         </p>
+    </div>
+
+    <script>
+        /**
+         * Core Application Logic
+         */
+        const appState = {
+            lang: 'en',
+            theme: 'light',
+            currentView: 'dashboard',
+            currentParticipant: null,
+            participants: [],
+            userProfile: {
+                name: 'Dr. R. Meena',
+                role: 'Research clinician',
+                avatar: 'DR'
+            },
+            assessmentState: {
+                step: 0,
+                section: null,
+                answers: {}
+            },
+            settings: {
+                enablePdfExport: true,
+                enableDocxExport: true,
+                showRiskScores: true,
+                autoRecommendVideos: true
+            }
+        };
+
+        // Translations Dictionary
+        const i18n = {
             en: {
                 dashboard: 'Dashboard', newAssessment: 'New assessment', participants: 'Participants', reports: 'Reports', education: 'Education', settings: 'Settings',
                 dashboardTitle: 'A clearer record of the signals that matter.', dashboardSub: 'Continue your participant assessments with a calm, structured review workspace.',
                 startAssessment: 'Start new assessment', previous: 'View previous assessments', recent: 'Recent assessments', recentSub: 'The latest participant records in your workspace.', total: 'Total participants', completed: 'Completed assessments', inProgress: 'In progress', today: "Today's assessments",
                 section: 'Section', question: 'Question', continue: 'Continue', back: 'Back', save: 'Save assessment', review: 'Review answers', assessment: 'Assessment', demo: 'Demo mode', noData: 'No participant records yet', noDataSub: 'Start a new assessment to build your research workspace.',
                 disclaimer: 'This assessment provides a screening/risk indication based on entered information. It is not a medical diagnosis and should not replace evaluation by a qualified healthcare professional.',
-                participant: 'Participant', age: 'Age', sex: 'Sex', education: 'Education', occupation: 'Occupation', income: 'Monthly family income', marital: 'Marital status', area: 'Area', duration: 'Duration of diabetes', checkup: 'Health checkup frequency', medication: 'Medication adherence', activity: 'Regular physical activity', clinical: 'Clinical information', neuropathy: 'Neuropathy', retinopathy: 'Retinopathy', nephropathy: 'Nephropathy', riskAssessment: 'Risk assessment', recommendation: 'Recommendation',
+                participant: 'Participant', age: 'Age', sex: 'Sex', education: 'Education', occupation: 'Occupation', income: 'Monthly family income', marital: 'Marital status', area: 'Area', duration: 'Duration of diabetes', checkup: 'Health checkup frequency', medication: 'Medication adherence', activity: 'Regular physical activity', clinical: 'Clinical information', neuropathy: 'Neuropathy', retinopathy: 'Retinopathy', nephropathy: 'Nephropathy', gastroparesis: 'Gastroparesis', peripheral: 'Peripheral Vascular', stroke: 'Stroke/Cerebrovascular', cardiovascular: 'Cardiovascular', riskAssessment: 'Risk assessment', recommendation: 'Recommendation',
                 low: 'LOW RISK', moderate: 'MODERATE RISK', high: 'HIGH RISK', analysis: 'AI-style analysis', educationTitle: 'Preventive education', perception: 'App perception', finalReport: 'Final report',
-                required: 'Please choose an answer before continuing.', saved: 'Assessment saved locally.', soon: 'This prototype area is not connected yet.', notice: 'This is a frontend-only research prototype. Do not enter identifiable participant data.'
+                required: 'Please answer all fields before continuing.', saved: 'Assessment saved locally.', notice: 'This is a frontend prototype. Data is saved in browser storage.',
+                male: 'Male', female: 'Female', rural: 'Rural', urban: 'Urban', single: 'Single', married: 'Married', separated: 'Separated', divorced: 'Divorced',
+                illiterate: 'Illiterate', primary: 'Primary', highSchool: 'High School', higherSecondary: 'Higher Secondary', graduate: 'Graduate',
+                yes: 'Yes', no: 'No', exportPdf: 'Export PDF', exportDocx: 'Export DOCX', finish: 'Finish Assessment',
+                settingsTitle: 'Application Settings', enablePdf: 'Enable PDF Export', enableDocx: 'Enable DOCX Export', showScores: 'Display Numeric Risk Scores', autoVideos: 'Auto-recommend Educational Videos',
+                part1Title: 'Socio-Demographic & Health Data', riskAssessTitle: 'Complication Risk Assessment', perceptionTitle: 'App Perception Survey',
+                resultsTitle: 'Your Risk Assessment Results', profileSettings: 'User Profile', userName: 'User Name', userRole: 'Role / Title', updateProfile: 'Update Profile'
             },
             ta: {
                 dashboard: 'டாஷ்போர்டு', newAssessment: 'புதிய மதிப்பீடு', participants: 'பங்கேற்பாளர்கள்', reports: 'அறிக்கைகள்', education: 'கல்வி', settings: 'அமைப்புகள்',
@@ -1526,146 +1940,1028 @@
                 startAssessment: 'புதிய மதிப்பீட்டைத் தொடங்கவும்', previous: 'முந்தைய மதிப்பீடுகளைக் காண்க', recent: 'சமீபத்திய மதிப்பீடுகள்', recentSub: 'உங்கள் பணியிடத்தில் உள்ள சமீபத்திய பங்கேற்பாளர் பதிவுகள்.', total: 'மொத்த பங்கேற்பாளர்கள்', completed: 'முடிக்கப்பட்ட மதிப்பீடுகள்', inProgress: 'நடைபெறுகிறது', today: 'இன்றைய மதிப்பீடுகள்',
                 section: 'பகுதி', question: 'கேள்வி', continue: 'தொடரவும்', back: 'பின்செல்லவும்', save: 'மதிப்பீட்டைச் சேமிக்கவும்', review: 'பதில்களை மதிப்பாய்வு செய்க', assessment: 'மதிப்பீடு', demo: 'டெமோ நிலை', noData: 'இன்னும் பங்கேற்பாளர் பதிவுகள் இல்லை', noDataSub: 'உங்கள் ஆய்வு பணியிடத்தை உருவாக்க புதிய மதிப்பீட்டைத் தொடங்குங்கள்.',
                 disclaimer: 'இந்த மதிப்பீடு உள்ளிடப்பட்ட தகவல்களின் அடிப்படையில் திரையிடல்/ஆபத்து அறிகுறியை வழங்குகிறது. இது மருத்துவ நோயறிதல் அல்ல; தகுதி பெற்ற சுகாதார நிபுணரின் மதிப்பீட்டை மாற்றாது.',
-                participant: 'பங்கேற்பாளர்', age: 'வயது', sex: 'பாலினம்', education: 'கல்வி', occupation: 'தொழில்', income: 'மாதாந்திர குடும்ப வருமானம்', marital: 'திருமண நிலை', area: 'பகுதி', duration: 'நீரிழிவு கால அளவு', checkup: 'சுகாதார பரிசோதனை இடைவெளி', medication: 'மருந்து ஒழுங்கு', activity: 'தினசரி உடற்பயிற்சி', clinical: 'உடல்நிலை தகவல்', neuropathy: 'நரம்பு பாதிப்பு', retinopathy: 'கண் பாதிப்பு', nephropathy: 'சிறுநீரக பாதிப்பு', riskAssessment: 'ஆபத்து மதிப்பீடு', recommendation: 'பரிந்துரை',
+                participant: 'பங்கேற்பாளர்', age: 'வயது', sex: 'பாலினம்', education: 'கல்வி', occupation: 'தொழில்', income: 'மாதாந்திர குடும்ப வருமானம்', marital: 'திருமண நிலை', area: 'பகுதி', duration: 'நீரிழிவு கால அளவு', checkup: 'சுகாதார பரிசோதனை இடைவெளி', medication: 'மருந்து ஒழுங்கு', activity: 'தினசரி உடற்பயிற்சி', clinical: 'உடல்நிலை தகவல்', neuropathy: 'நரம்பு பாதிப்பு', retinopathy: 'கண் பாதிப்பு', nephropathy: 'சிறுநீரக பாதிப்பு', gastroparesis: 'காஸ்ட்ரோபரேசிஸ்', peripheral: 'புற இரத்த நாளங்கள்', stroke: 'பக்கவாதம்', cardiovascular: 'இதய இரத்த நாளங்கள்', riskAssessment: 'ஆபத்து மதிப்பீடு', recommendation: 'பரிந்துரை',
                 low: 'குறைந்த ஆபத்து', moderate: 'மிதமான ஆபத்து', high: 'அதிக ஆபத்து', analysis: 'AI பாணி விளக்கம்', educationTitle: 'தடுப்பு கல்வி', perception: 'செயலி கருத்து', finalReport: 'இறுதி அறிக்கை',
-                required: 'தொடர்வதற்கு முன் பதிலைத் தேர்ந்தெடுக்கவும்.', saved: 'மதிப்பீடு உள்ளூரில் சேமிக்கப்பட்டது.', soon: 'இந்த முன்மாதிரி பகுதி இன்னும் இணைக்கப்படவில்லை.', notice: 'இது முன்புற ஆராய்ச்சி முன்மாதிரி மட்டுமே. அடையாளம் காணக்கூடிய பங்கேற்பாளர் தகவலை உள்ளிட வேண்டாம்.'
+                required: 'தொடர்வதற்கு முன் அனைத்து புலங்களுக்கும் பதிலளிக்கவும்.', saved: 'மதிப்பீடு சேமிக்கப்பட்டது.', notice: 'இது முன்புற முன்மாதிரி. தரவு உலாவியில் சேமிக்கப்படுகிறது.',
+                male: 'ஆண்', female: 'பெண்', rural: 'கிராமப்புறம்', urban: 'நகர்ப்புறம்', single: 'திருமணம் ஆகாதவர்', married: 'திருமணமானவர்', separated: 'பிரிந்தவர்', divorced: 'விவாகரத்து பெற்றவர்',
+                illiterate: 'கல்வியறிவு இல்லை', primary: 'ஆரம்பக் கல்வி', highSchool: 'உயர்நிலைப் பள்ளி', higherSecondary: 'மேல்நிலைப் பள்ளி', graduate: 'பட்டப்படிப்பு',
+                yes: 'ஆம்', no: 'இல்லை', exportPdf: 'PDF ஏற்றுமதி', exportDocx: 'DOCX ஏற்றுமதி', finish: 'மதிப்பீட்டை முடிக்கவும்',
+                settingsTitle: 'செயலி அமைப்புகள்', enablePdf: 'PDF ஏற்றுமதியை இயக்கு', enableDocx: 'DOCX ஏற்றுமதியை இயக்கு', showScores: 'ஆபத்து மதிப்பெண்களைக் காட்டு', autoVideos: 'கல்வி வீடியோக்களை பரிந்துரை செய்',
+                part1Title: 'சமூக-மக்கள்தொகை மற்றும் சுகாதார தரவு', riskAssessTitle: 'சிக்கல் ஆபத்து மதிப்பீடு', perceptionTitle: 'செயலி கருத்துக்கணிப்பு',
+                resultsTitle: 'உங்கள் ஆபத்து மதிப்பீட்டு முடிவுகள்', profileSettings: 'பயனர் சுயவிவரம்', userName: 'பயனர் பெயர்', userRole: 'பதவி / பங்கு', updateProfile: 'சுயவிவரத்தைப் புதுப்பிக்கவும்'
             }
         };
 
-        const symptomSets = {
-            neuropathy: ['Does the participant experience pain in their legs or feet?', 'Do they feel numbness in their feet?', 'Do they experience tingling or prickling in their feet?', 'Do they feel a burning sensation in their feet?', 'Do they have loss of sensation in their feet?', 'Do they feel increased sensitivity to touch in their feet?', 'Do they experience muscle weakness in their legs?', 'Do they have difficulty walking due to foot discomfort?', 'Do they experience sharp or stabbing pain in their feet?', 'Do they notice reduced ability to feel temperature changes in their feet?'],
-            retinopathy: ['Does the participant experience blurred vision?', 'Do they have difficulty seeing clearly at night?', 'Do they see dark spots or floaters?', 'Do they experience frequent changes in vision?', 'Do they have difficulty reading small text?', 'Do they notice distorted or wavy vision?', 'Do they feel eye strain or discomfort frequently?', 'Do they experience sudden loss of vision?', 'Do they notice difficulty recognizing faces from a distance?', 'Do their eyes become sensitive to bright light?'],
-            nephropathy: ['Does the participant have swelling in their feet or ankles?', 'Do they experience frequent urination at night?', 'Do they notice foamy or bubbly urine?', 'Do they feel persistent fatigue or weakness?', 'Do they experience loss of appetite?', 'Do they have nausea or vomiting frequently?', 'Do they experience difficulty concentrating or confusion?', 'Do they notice dry and itchy skin?', 'Do they experience shortness of breath without exertion?', 'Do they notice reduced urine output?']
+        // Questionnaire Data Structure
+        const questionnaire = {
+            demographics: [
+                { id: 'participant_no', type: 'text', label: { en: 'Participant Number', ta: 'பங்கேற்பாளர் எண்' } },
+                { id: 'age', type: 'number', label: { en: 'Age in years', ta: 'வயது (ஆண்டுகளில்)' } },
+                { id: 'sex', type: 'select', label: { en: 'Sex', ta: 'பாலினம்' }, options: [{val: 'Male', en: 'Male', ta: 'ஆண்'}, {val: 'Female', en: 'Female', ta: 'பெண்'}] },
+                { id: 'education', type: 'select', label: { en: 'Education', ta: 'கல்வித் தகுதி' }, options: [{val: 'Illiterate', en: 'Illiterate', ta: 'கல்வியறிவு இல்லை'}, {val: 'Primary', en: 'Primary', ta: 'ஆரம்பக் கல்வி'}, {val: 'High School', en: 'High School', ta: 'உயர்நிலைப் பள்ளி'}, {val: 'Higher Secondary', en: 'Higher Secondary', ta: 'மேல்நிலைப் பள்ளி'}, {val: 'Graduate', en: 'Graduate', ta: 'பட்டப்படிப்பு'}] },
+                { id: 'occupation', type: 'text', label: { en: 'Occupation', ta: 'தொழில்' } },
+                { id: 'income', type: 'select', label: { en: 'Monthly Family Income', ta: 'மாதாந்திர குடும்ப வருமானம்' }, options: [{val: '<=6999', en: '≤6999', ta: '₹6999 அல்லது அதற்குக் குறைவு'}, {val: '7000-10999', en: '7000–10999', ta: '₹7000 – ₹10,999'}, {val: '11000-18999', en: '11000–18999', ta: '₹11,000 – ₹18,999'}, {val: '19000-28999', en: '19000–28999', ta: '₹19,000 – ₹28,999'}, {val: '29000-38999', en: '29000–38999', ta: '₹29,000 – ₹38,999'}, {val: '39000-77999', en: '39000–77999', ta: '₹39,000 – ₹77,999'}, {val: '>=78000', en: '≥78000', ta: '₹78,000 அல்லது அதற்கு மேல்'}] },
+                { id: 'marital', type: 'select', label: { en: 'Marital Status', ta: 'திருமண நிலை' }, options: [{val: 'Single', en: 'Single', ta: 'திருமணம் ஆகாதவர்'}, {val: 'Married', en: 'Married', ta: 'திருமணமானவர்'}, {val: 'Separated', en: 'Separated', ta: 'பிரிந்தவர்'}, {val: 'Divorced', en: 'Divorced', ta: 'விவாகரத்து பெற்றவர்'}] },
+                { id: 'area', type: 'select', label: { en: 'Area', ta: 'வசிக்கும் பகுதி' }, options: [{val: 'Rural', en: 'Rural', ta: 'கிராமப்புறம்'}, {val: 'Urban', en: 'Urban', ta: 'நகர்ப்புறம்'}] }
+            ],
+            health: [
+                { id: 'duration', type: 'select', label: { en: 'Duration of DM', ta: 'நீரிழிவு நோயின் கால அளவு' }, options: [{val: '<1', en: 'Less than one year', ta: '1 ஆண்டிற்கு குறைவு'}, {val: '1-10', en: 'One – 10 years', ta: '1 – 10 ஆண்டுகள்'}, {val: '11-20', en: '11 - 20 years', ta: '11 – 20 ஆண்டுகள்'}, {val: '>20', en: 'Greater than 20 years', ta: '20 ஆண்டுகளுக்கு மேல்'}] },
+                { id: 'checkup', type: 'select', label: { en: 'Frequency of health checkup', ta: 'சுகாதார பரிசோதனை இடைவெளி' }, options: [{val: 'monthly', en: 'Once a month', ta: 'மாதத்திற்கு ஒருமுறை'}, {val: '6months', en: '6 months once', ta: '6 மாதத்திற்கு ஒருமுறை'}, {val: 'yearly', en: 'More than a year', ta: 'ஆண்டிற்கு ஒருமுறை அல்லது அதற்கு மேல்'}, {val: 'never', en: 'Never', ta: 'ஒருபோதும் செய்யவில்லை'}] },
+                { id: 'med_adherence', type: 'select', label: { en: 'Medication adherence', ta: 'மருந்து எடுத்துக்கொள்ளும் ஒழுங்கு' }, options: [{val: 'Regular', en: 'Regular', ta: 'ஒழுங்காக'}, {val: 'Irregular', en: 'Irregular', ta: 'ஒழுங்காக இல்லை'}] },
+                { id: 'drug_type', type: 'select', label: { en: 'What type of drug do you take', ta: 'மருந்து வகை' }, options: [{val: 'oral', en: 'Oral hypoglycemic tablets', ta: 'வாய்வழி மாத்திரைகள்'}, {val: 'insulin', en: 'Insulin injection', ta: 'இன்சுலின் ஊசி'}, {val: 'ayush', en: 'AYUSH medicines', ta: 'ஆயுஷ் மருந்துகள்'}] },
+                { id: 'diet', type: 'select', label: { en: 'Do you follow recommended diabetic diet?', ta: 'உணவு முறையை பின்பற்றுகிறீர்களா?' }, options: [{val: 'Yes', en: 'Yes', ta: 'ஆம்'}, {val: 'No', en: 'No', ta: 'இல்லை'}] },
+                { id: 'comorbid', type: 'select', label: { en: 'Do you have any co-morbid disease?', ta: 'இணைநோய்கள் உள்ளதா?' }, options: [{val: 'Yes', en: 'Yes', ta: 'ஆம்'}, {val: 'No', en: 'No', ta: 'இல்லை'}] },
+                { id: 'physical_activity', type: 'select', label: { en: 'Do you perform regular physical activity?', ta: 'உடற்பயிற்சி செய்கிறீர்களா?' }, options: [{val: 'Yes', en: 'Yes', ta: 'ஆம்'}, {val: 'No', en: 'No', ta: 'இல்லை'}] }
+            ],
+            riskAssessment: {
+                neuropathy: {
+                    title: { en: 'Section A: Neuropathy Symptoms', ta: 'பகுதி A: நரம்பு சேதம் அறிகுறிகள்' },
+                    questions: [
+                        { id: 'n1', en: 'Do you experience pain in your legs or feet?', ta: 'உங்கள் கால்களில் அல்லது பாதங்களில் வலி உள்ளதா?' },
+                        { id: 'n2', en: 'Do you feel numbness in your feet?', ta: 'உங்கள் பாதங்களில் உணர்வு குறைவு உள்ளதா?' },
+                        { id: 'n3', en: 'Do you experience tingling or prickling sensation in your feet?', ta: 'கால்களில் முள் குத்தும் போன்ற உணர்வு உள்ளதா?' },
+                        { id: 'n4', en: 'Do you feel a burning sensation in your feet?', ta: 'கால்களில் எரியும் உணர்வு ஏற்படுகிறதா?' },
+                        { id: 'n5', en: 'Do you have loss of sensation in your feet?', ta: 'கால்களில் உணர்வு இழப்பு உள்ளதா?' },
+                        { id: 'n6', en: 'Do you feel increased sensitivity to touch in your feet?', ta: 'தொடும்போது அதிக உணர்வு ஏற்படுகிறதா?' },
+                        { id: 'n7', en: 'Do you experience muscle weakness in your legs?', ta: 'கால்களில் தசை பலவீனம் உள்ளதா?' },
+                        { id: 'n8', en: 'Do you have difficulty walking due to foot discomfort?', ta: 'கால்களில் உள்ள பிரச்சினைகளால் நடக்க சிரமமா?' },
+                        { id: 'n9', en: 'Do you experience sharp or stabbing pain in your feet?', ta: 'கூர்மையான வலி ஏற்படுகிறதா?' },
+                        { id: 'n10', en: 'Do you notice reduced ability to feel temperature changes in your feet?', ta: 'வெப்பநிலை மாற்றத்தை உணர சிரமமா?' }
+                    ],
+                    scoring: { max: 10, low: [0, 3], moderate: [4, 6], high: [7, 10] }
+                },
+                retinopathy: {
+                    title: { en: 'Section B: Retinopathy Symptoms', ta: 'பகுதி B: கண் நரம்பு பாதிப்பு அறிகுறிகள்' },
+                    questions: [
+                        { id: 'r1', en: 'Do you experience blurred vision?', ta: 'மங்கலான பார்வை உள்ளதா?' },
+                        { id: 'r2', en: 'Do you have difficulty seeing clearly at night?', ta: 'இரவில் தெளிவாக பார்க்க சிரமமா?' },
+                        { id: 'r3', en: 'Do you see dark spots or floaters in your vision?', ta: 'பார்வையில் கரும்புள்ளிகள் தெரிகிறதா?' },
+                        { id: 'r4', en: 'Do you experience frequent changes in your vision?', ta: 'பார்வையில் அடிக்கடி மாற்றம் ஏற்படுகிறதா?' },
+                        { id: 'r5', en: 'Do you have difficulty reading small text?', ta: 'சிறிய எழுத்துகளை வாசிக்க சிரமமா?' },
+                        { id: 'r6', en: 'Do you notice distorted or wavy vision?', ta: 'நேராக உள்ள பொருட்கள் வளைந்து காணப்படுகிறதா?' },
+                        { id: 'r7', en: 'Do you feel eye strain or discomfort frequently?', ta: 'கண்களில் வலி அல்லது சோர்வு ஏற்படுகிறதா?' },
+                        { id: 'r8', en: 'Do you experience sudden loss of vision in one or both eyes?', ta: 'திடீரென பார்வை குறைவு ஏற்பட்டதா?' },
+                        { id: 'r9', en: 'Do you notice difficulty recognizing faces from a distance?', ta: 'தூரத்தில் உள்ள முகங்களை அடையாளம் காண சிரமமா?' },
+                        { id: 'r10', en: 'Do your eyes become sensitive to bright light?', ta: 'பிரகாசமான வெளிச்சத்திற்கு கண்கள் மிகவும் உணர்வாக உள்ளதா?' }
+                    ],
+                    scoring: { max: 10, low: [0, 3], moderate: [4, 6], high: [7, 10] }
+                },
+                nephropathy: {
+                    title: { en: 'Section C: Nephropathy Symptoms', ta: 'பகுதி C: சிறுநீரக பாதிப்பு அறிகுறிகள்' },
+                    questions: [
+                        { id: 'k1', en: 'Do you have swelling in your feet or ankles?', ta: 'உங்கள் கால்களில் அல்லது கணுக்கால்களில் வீக்கம் உள்ளதா?' },
+                        { id: 'k2', en: 'Do you experience frequent urination at night?', ta: 'இரவில் அடிக்கடி சிறுநீர் கழிக்க வேண்டிய நிலை உள்ளதா?' },
+                        { id: 'k3', en: 'Do you notice foamy or bubbly urine?', ta: 'நுரையுடன் கூடிய சிறுநீர் இருக்கிறதா?' },
+                        { id: 'k4', en: 'Do you feel persistent fatigue or weakness?', ta: 'அதிக சோர்வு அல்லது பலவீனம் உள்ளதா?' },
+                        { id: 'k5', en: 'Do you experience loss of appetite?', ta: 'உணவு விருப்பம் குறைந்துள்ளதா?' },
+                        { id: 'k6', en: 'Do you have nausea or vomiting frequently?', ta: 'அடிக்கடி வாந்தி அல்லது மயக்கம் ஏற்படுகிறதா?' },
+                        { id: 'k7', en: 'Do you experience difficulty concentrating or feeling confused?', ta: 'கவனம் செலுத்த சிரமம் உள்ளதா?' },
+                        { id: 'k8', en: 'Do you notice dry and itchy skin?', ta: 'தோல் உலர்வு மற்றும் அரிப்பு உள்ளதா?' },
+                        { id: 'k9', en: 'Do you experience shortness of breath without physical exertion?', ta: 'சுவாசிக்க சிரமம் உள்ளதா?' },
+                        { id: 'k10', en: 'Do you notice reduced urine output?', ta: 'சிறுநீர் வெளியேறும் அளவு குறைந்துள்ளதா?' }
+                    ],
+                    scoring: { max: 10, low: [0, 3], moderate: [4, 6], high: [7, 10] }
+                },
+                gastroparesis: {
+                    title: { en: 'Section D: Gastroparesis', ta: 'பகுதி D: காஸ்ட்ரோபரேசிஸ்' },
+                    questions: [
+                        { id: 'g1', en: 'Do you frequently feel full after eating a small amount of food?', ta: 'சிறிதளவு உணவு சாப்பிட்ட பிறகே அடிக்கடி வயிறு நிறைந்தது போன்ற உணர்வு ஏற்படுகிறதா?' },
+                        { id: 'g2', en: 'Do you frequently experience bloating after meals?', ta: 'உணவு சாப்பிட்ட பிறகு அடிக்கடி வயிறு உப்புசமாக உணரப்படுகிறதா?' },
+                        { id: 'g3', en: 'Do you frequently experience nausea?', ta: 'உங்களுக்கு அடிக்கடி குமட்டல் ஏற்படுகிறதா?' },
+                        { id: 'g4', en: 'Have you vomited undigested food several hours after eating?', ta: 'உணவு சாப்பிட்டு பல மணி நேரங்களுக்குப் பிறகு செரிமானமாகாத உணவை வாந்தி எடுத்துள்ளீர்களா?' },
+                        { id: 'g5', en: 'Do you frequently experience abdominal discomfort after eating?', ta: 'உணவு சாப்பிட்ட பிறகு அடிக்கடி வயிற்றில் அசௌகரியம் ஏற்படுகிறதா?' },
+                        { id: 'g6', en: 'Have you experienced unexplained weight loss?', ta: 'காரணம் தெரியாமல் உடல் எடை குறைந்துள்ளதா?' },
+                        { id: 'g7', en: 'Do your blood glucose levels become difficult to predict after meals?', ta: 'உணவு சாப்பிட்ட பிறகு இரத்த சர்க்கரை அளவை கணிக்க முடியாத அளவிற்கு மாறுபடுகிறதா?' },
+                        { id: 'g8', en: 'Have you ever been diagnosed with gastroparesis?', ta: 'உங்களுக்கு இதற்கு முன்பு காஸ்ட்ரோபரேசிஸ் இருப்பதாக மருத்துவரால் கண்டறியப்பட்டுள்ளதா?' }
+                    ],
+                    scoring: { max: 8, low: [0, 3], moderate: [4, 6], high: [7, 8] }
+                },
+                peripheral: {
+                    title: { en: 'Part E: Peripheral Vascular', ta: 'பகுதி E: புற இரத்த நாளங்கள்' },
+                    questions: [
+                        { id: 'p1', en: 'Do you experience pain in your calf or thigh while walking that improves with rest?', ta: 'நடக்கும்போது கெண்டைக்கால் அல்லது தொடையில் வலி ஏற்பட்டு, ஓய்வெடுத்த பிறகு குறைகிறதா?' },
+                        { id: 'p2', en: 'Do your feet frequently feel cold?', ta: 'உங்கள் பாதங்கள் அடிக்கடி குளிர்ச்சியாக உணரப்படுகிறதா?' },
+                        { id: 'p3', en: 'Do wounds on your feet or legs take a long time to heal?', ta: 'பாதங்கள் அல்லது கால்களில் ஏற்படும் காயங்கள் குணமடைய அதிக நாட்கள் ஆகிறதா?' },
+                        { id: 'p4', en: 'Have you noticed a change in the colour of your feet or toes?', ta: 'பாதங்கள் அல்லது கால் விரல்களின் நிறத்தில் மாற்றம் ஏற்பட்டுள்ளதை கவனித்துள்ளீர்களா?' },
+                        { id: 'p5', en: 'Have you ever been diagnosed with poor circulation in your legs?', ta: 'கால்களில் இரத்த ஓட்டம் குறைவாக இருப்பதாக கண்டறியப்பட்டுள்ளதா?' }
+                    ],
+                    scoring: { max: 5, low: [0, 1], moderate: [2, 3], high: [4, 5] }
+                },
+                stroke: {
+                    title: { en: 'Part F: Stroke / Cerebrovascular', ta: 'பகுதி F: பக்கவாதம்' },
+                    questions: [
+                        { id: 's1', en: 'Have you experienced sudden weakness or numbness on one side of your body?', ta: 'உடலின் ஒரு பக்கத்தில் திடீரென பலவீனம் அல்லது உணர்வின்மை ஏற்பட்டுள்ளதா?' },
+                        { id: 's2', en: 'Have you experienced sudden difficulty in speaking or understanding speech?', ta: 'திடீரென பேசுவதில் அல்லது புரிந்துகொள்வதில் சிரமம் ஏற்பட்டுள்ளதா?' },
+                        { id: 's3', en: 'Have you experienced sudden difficulty in walking or maintaining balance?', ta: 'திடீரென நடப்பதில் அல்லது சமநிலையைப் பேணுவதில் சிரமம் ஏற்பட்டுள்ளதா?' },
+                        { id: 's4', en: 'Have you experienced sudden difficulty in seeing with one or both eyes?', ta: 'ஒன்று அல்லது இரண்டு கண்களிலும் திடீரென பார்வையில் சிரமம் ஏற்பட்டுள்ளதா?' },
+                        { id: 's5', en: 'Have you experienced sudden severe headache without a known cause?', ta: 'காரணம் எதுவும் தெரியாமல் திடீரென கடுமையான தலைவலி ஏற்பட்டுள்ளதா?' },
+                        { id: 's6', en: 'Have you ever been diagnosed with a stroke or cerebrovascular disease?', ta: 'பக்கவாதம் அல்லது மூளை இரத்த நாள நோய் இருப்பதாக கண்டறியப்பட்டுள்ளதா?' }
+                    ],
+                    scoring: { max: 6, low: [0, 2], moderate: [3, 4], high: [5, 6] }
+                },
+                cardiovascular: {
+                    title: { en: 'Part G: Cardiovascular', ta: 'பகுதி G: இதய இரத்த நாளங்கள்' },
+                    questions: [
+                        { id: 'c1', en: 'Do you experience chest pain or pressure during activity?', ta: 'உடல் செயல்பாடுகளின் போது மார்பில் வலி அல்லது அழுத்தம் ஏற்படுகிறதா?' },
+                        { id: 'c2', en: 'Do you experience shortness of breath during routine activities?', ta: 'அன்றாட செயல்பாடுகளைச் செய்யும்போது மூச்சுத் திணறல் ஏற்படுகிறதா?' },
+                        { id: 'c3', en: 'Do you have high cholesterol?', ta: 'உங்கள் இரத்தத்தில் கொழுப்புச்சத்து அதிகமாக உள்ளதா?' },
+                        { id: 'c4', en: 'Do you experience unusual palpitations or an irregular heartbeat?', ta: 'இதயத் துடிப்பு வேகமாகவோ அல்லது சீரற்றதாகவோ இருப்பதை உணர்கிறீர்களா?' },
+                        { id: 'c5', en: 'Have you ever been diagnosed with heart disease?', ta: 'இதய நோய் இருப்பதாக மருத்துவரால் கண்டறியப்பட்டுள்ளதா?' },
+                        { id: 'c6', en: 'Do you experience swelling in your feet or ankles?', ta: 'உங்கள் பாதங்கள் அல்லது கணுக்கால்களில் வீக்கம் ஏற்படுகிறதா?' }
+                    ],
+                    scoring: { max: 6, low: [0, 2], moderate: [3, 4], high: [5, 6] }
+                }
+            },
+            perception: [
+                { id: 'perc1', en: 'First impression of the app', ta: 'செயலியின் முதல் அபிப்ராயம் (1-மிகவும் மோசம், 5-மிகவும் நன்று)', type: 'rating' },
+                { id: 'perc2', en: 'How often do you use the app?', ta: 'எவ்வளவு அடிக்கடி செயலியை பயன்படுத்துகிறீர்கள்?', type: 'select', options: [{val: 'Daily', en: 'Daily', ta: 'தினசரி'}, {val: 'Weekly', en: 'Weekly', ta: 'வாராந்திர'}, {val: 'Monthly', en: 'Monthly', ta: 'மாதாந்திர'}, {val: 'Rarely', en: 'Rarely', ta: 'அரிதாக'}] },
+                { id: 'perc3', en: 'The app helps me manage diabetes better', ta: 'இந்த செயலி நீரிழிவு நோயை நிர்வகிக்க உதவுகிறது', type: 'rating' },
+                { id: 'perc4', en: 'The app is easy to navigate', ta: 'இந்த செயலியைப் பயன்படுத்துவது எளிதாக இருந்தது', type: 'rating' },
+                { id: 'perc5', en: 'Overall satisfaction with the app', ta: 'செயலியின் ஒட்டுமொத்த திருப்தி', type: 'rating' }
+            ]
         };
-        const tamilSymptomSets = {
-            neuropathy: ['உங்கள் கால்கள் அல்லது பாதங்களில் வலி உள்ளதா?', 'உங்கள் பாதங்களில் உணர்வின்மை உள்ளதா?', 'உங்கள் பாதங்களில் கூச்சம் அல்லது முள் குத்துவது போன்ற உணர்வு உள்ளதா?', 'உங்கள் பாதங்களில் எரியும் உணர்வு உள்ளதா?', 'உங்கள் பாதங்களில் உணர்வு இழப்பு உள்ளதா?', 'உங்கள் பாதங்களைத் தொடும்போது அதிக உணர்திறன் உள்ளதா?', 'உங்கள் கால்களில் தசை பலவீனம் உள்ளதா?', 'பாத அசௌகரியம் காரணமாக நடப்பதில் சிரமம் உள்ளதா?', 'உங்கள் பாதங்களில் கூர்மையான அல்லது குத்துவது போன்ற வலி உள்ளதா?', 'உங்கள் பாதங்களில் வெப்பநிலை மாற்றங்களை உணரும் திறன் குறைந்துள்ளதா?'],
-            retinopathy: ['மங்கலான பார்வை உள்ளதா?', 'இரவில் தெளிவாகப் பார்ப்பதில் சிரமம் உள்ளதா?', 'பார்வையில் கரும்புள்ளிகள் அல்லது மிதக்கும் புள்ளிகள் (Floaters) தோன்றுகிறதா?', 'பார்வையில் அடிக்கடி மாற்றங்கள் ஏற்படுகிறதா?', 'சிறிய எழுத்துகளைப் படிப்பதில் சிரமம் உள்ளதா?', 'பார்வை சிதைந்ததாக அல்லது அலைபோல் தோன்றுகிறதா?', 'அடிக்கடி கண் சோர்வு அல்லது அசௌகரியம் ஏற்படுகிறதா?', 'ஒன்று அல்லது இரு கண்களிலும் திடீரென பார்வை இழப்பு ஏற்பட்டதா?', 'தூரத்தில் உள்ள முகங்களை அடையாளம் காண்பதில் சிரமம் உள்ளதா?', 'பிரகாசமான வெளிச்சத்திற்கு கண்கள் உணர்திறனாக உள்ளதா?'],
-            nephropathy: ['உங்கள் கால்கள் அல்லது கணுக்கால்களில் வீக்கம் உள்ளதா?', 'இரவில் அடிக்கடி சிறுநீர் கழிக்க வேண்டிய நிலை உள்ளதா?', 'நுரையுடன் அல்லது குமிழ்களுடன் கூடிய சிறுநீர் வெளியேறுகிறதா?', 'தொடர்ந்து சோர்வு அல்லது பலவீனம் உள்ளதா?', 'பசியின்மை உள்ளதா?', 'அடிக்கடி குமட்டல் அல்லது வாந்தி ஏற்படுகிறதா?', 'கவனம் செலுத்துவதில் சிரமம் அல்லது குழப்பம் உள்ளதா?', 'தோல் உலர்ந்து அரிப்பு உள்ளதா?', 'உடல் உழைப்பு இல்லாமலேயே மூச்சுத்திணறல் ஏற்படுகிறதா?', 'சிறுநீர் வெளியேற்றம் குறைந்துள்ளதா?']
-        };
-        const perceptionQuestions = [
-            { id: 'perception_0', label: 'It was easy to use this app.', labelTa: 'இந்த செயலியைப் பயன்படுத்துவது எளிதாக இருந்தது.', options: ['Strongly agree', 'Agree', 'Not sure', 'Disagree', 'Strongly disagree'] },
-            { id: 'perception_1', label: 'The questions in the app were clearly understandable.', labelTa: 'செயலியில் உள்ள கேள்விகள் தெளிவாகப் புரிந்தன.', options: ['Strongly agree', 'Agree', 'Not sure', 'Disagree', 'Strongly disagree'] },
-            { id: 'perception_2', label: 'This app increased my awareness of diabetes complications.', labelTa: 'இந்த செயலி நீரிழிவு நோய் சிக்கல்கள் குறித்த எனது விழிப்புணர்வை அதிகரித்தது.', options: ['Strongly agree', 'Agree', 'Not sure', 'Disagree', 'Strongly disagree'] },
-            { id: 'perception_3', label: 'The information provided in the app was useful.', labelTa: 'செயலியில் வழங்கப்பட்ட தகவல்கள் பயனுள்ளதாக இருந்தன.', options: ['Strongly agree', 'Agree', 'Not sure', 'Disagree', 'Strongly disagree'] },
-            { id: 'perception_4', label: 'This app helped me understand my health risk.', labelTa: 'இந்த செயலி எனது உடல்நல ஆபத்தைப் புரிந்துகொள்ள உதவியது.', options: ['Strongly agree', 'Agree', 'Not sure', 'Disagree', 'Strongly disagree'] },
-            { id: 'perception_5', label: 'The preventive strategies provided in the app were useful.', labelTa: 'செயலியில் வழங்கப்பட்ட தடுப்பு வழிமுறைகள் பயனுள்ளதாக இருந்தன.', options: ['Strongly agree', 'Agree', 'Not sure', 'Disagree', 'Strongly disagree'] },
-            { id: 'perception_6', label: 'The educational video shown in the app was easy to understand.', labelTa: 'செயலியில் காண்பிக்கப்பட்ட கல்வி வீடியோவைப் புரிந்துகொள்வது எளிதாக இருந்தது.', options: ['Strongly agree', 'Agree', 'Not sure', 'Disagree', 'Strongly disagree'] },
-            { id: 'perception_7', label: 'After using this app, I felt more confident about preventing diabetes complications.', labelTa: 'இந்த செயலியைப் பயன்படுத்திய பிறகு, நீரிழிவு சிக்கல்களைத் தடுப்பதில் எனது நம்பிக்கை அதிகரித்தது.', options: ['Strongly agree', 'Agree', 'Not sure', 'Disagree', 'Strongly disagree'] },
-            { id: 'perception_8', label: 'It would be useful for people with diabetes to use this app.', labelTa: 'நீரிழிவு நோயாளிகள் இந்த செயலியைப் பயன்படுத்துவது பயனுள்ளதாக இருக்கும்.', options: ['Strongly agree', 'Agree', 'Not sure', 'Disagree', 'Strongly disagree'] }
+
+        const videos = [
+            { id: 'v1', category: 'general', title: { en: 'Understanding Diabetes', ta: 'நீரிழிவு நோயைப் புரிந்துகொள்வது' }, desc: { en: 'Learn how blood sugar affects your organs.', ta: 'இரத்த சர்க்கரை உறுப்புகளை எப்படி பாதிக்கிறது.' } },
+            { id: 'v2', category: 'general', title: { en: 'Healthy Diet', ta: 'ஆரோக்கியமான உணவு' }, desc: { en: 'Balance your plate to control diabetes.', ta: 'சர்க்கரையை கட்டுப்படுத்த உணவை சமநிலைப்படுத்துங்கள்.' } },
+            { id: 'v3', category: 'general', title: { en: 'Physical Activity', ta: 'உடற்பயிற்சி' }, desc: { en: 'Exercise for heart and metabolic health.', ta: 'இதய ஆரோக்கியத்திற்கான உடற்பயிற்சி.' } },
+            { id: 'v4', category: 'neuropathy', title: { en: 'Diabetic Foot Care', ta: 'பாத பராமரிப்பு' }, desc: { en: 'Daily checks to prevent nerve damage ulcers.', ta: 'நரம்பு பாதிப்பு புண்களைத் தடுக்க தினசரி பரிசோதனை.' } },
+            { id: 'v5', category: 'retinopathy', title: { en: 'Eye Care for Diabetics', ta: 'கண் பராமரிப்பு' }, desc: { en: 'Protect your vision from high glucose.', ta: 'பார்வையை பாதுகாப்பது எப்படி.' } },
+            { id: 'v6', category: 'nephropathy', title: { en: 'Protecting Your Kidneys', ta: 'சிறுநீரக பாதுகாப்பு' }, desc: { en: 'Manage BP and sugar for kidney health.', ta: 'சிறுநீரக ஆரோக்கியத்திற்கு BP மற்றும் சர்க்கரை மேலாண்மை.' } }
         ];
 
-        const state = {
-            view: 'dashboard', language: 'en', theme: localStorage.getItem('theme') || 'light',
-            assessment: null, step: 0, currentQuestions: [], completed: JSON.parse(localStorage.getItem('diabetesAssessments') || '[]')
-        };
+        // Utility: Get Translated Text
+        const t = (key) => i18n[appState.lang][key] || key;
+        const tt = (obj) => obj[appState.lang] || obj.en;
 
-        const participantQuestions = [
-            { id: 'participantNumber', label: 'What is the participant number?', labelTa: 'பங்கேற்பாளர் எண் என்ன?', type: 'text', placeholder: 'e.g. P-025', placeholderTa: 'எ.கா. பி-025' },
-            { id: 'age', label: 'What is the participant’s age in years?', labelTa: 'பங்கேற்பாளரின் வயது (ஆண்டுகளில்) என்ன?', type: 'number', placeholder: 'Enter age', placeholderTa: 'வயதை உள்ளிடவும்' },
-            { id: 'sex', label: 'What is the participant’s sex?', labelTa: 'பங்கேற்பாளரின் பாலினம் என்ன?', type: 'choice', options: ['Male', 'Female'] },
-            { id: 'education', label: 'What is the participant’s highest level of education?', labelTa: 'பங்கேற்பாளரின் கல்வித் தகுதி என்ன?', type: 'choice', options: ['Illiterate', 'Primary', 'High school', 'Higher secondary', 'Graduate'] },
-            { id: 'occupation', label: 'What is the participant’s occupation?', labelTa: 'பங்கேற்பாளரின் தொழில் என்ன?', type: 'text', placeholder: 'Enter occupation', placeholderTa: 'தொழிலை உள்ளிடவும்' },
-            { id: 'income', label: 'What is the monthly family income range?', labelTa: 'மாதாந்திர குடும்ப வருமான வரம்பு என்ன?', type: 'choice', options: ['≤ ₹6,999', '₹7,000–10,999', '₹11,000–18,999', '₹19,000–28,999', '₹29,000–38,999', '₹39,000–77,999', '≥ ₹78,000'] },
-            { id: 'marital', label: 'What is the participant’s marital status?', labelTa: 'பங்கேற்பாளரின் திருமண நிலை என்ன?', type: 'choice', options: ['Single', 'Married', 'Separated', 'Divorced'] },
-            { id: 'area', label: 'Where does the participant live?', labelTa: 'பங்கேற்பாளர் வசிக்கும் பகுதி எது?', type: 'choice', options: ['Rural', 'Urban'] },
-            { id: 'duration', label: 'How long has the participant had diabetes?', labelTa: 'பங்கேற்பாளருக்கு நீரிழிவு நோய் உள்ள கால அளவு எவ்வளவு?', type: 'choice', options: ['Less than 1 year', '1–10 years', '11–20 years', 'More than 20 years'] },
-            { id: 'checkup', label: 'How often does the participant have a health checkup?', labelTa: 'பங்கேற்பாளர் எத்தனை இடைவெளியில் சுகாதாரப் பரிசோதனை செய்கிறார்?', type: 'choice', options: ['Once a month', 'Once every 6 months', 'More than a year', 'Never'] },
-            { id: 'medication', label: 'How would you describe medication adherence?', labelTa: 'மருந்துகளை எடுத்துக்கொள்ளும் ஒழுங்கு எப்படி உள்ளது?', type: 'choice', options: ['Regular', 'Irregular'] },
-            { id: 'drugType', label: 'What type of drug does the participant take?', labelTa: 'பங்கேற்பாளர் எந்த வகையான நீரிழிவு மருந்தை எடுத்துக்கொள்கிறார்?', type: 'choice', options: ['Oral hypoglycemic tablets', 'Insulin injection', 'AYUSH medicines'] },
-            { id: 'takeMedsRegularly', label: 'Do you take your medications regularly?', labelTa: 'நீங்கள் மருந்துகளை ஒழுங்காக எடுத்துக்கொள்கிறீர்களா?', type: 'choice', options: ['Yes', 'No'] },
-            { id: 'medicationReason', label: 'If no, what is the reason for not taking the medications regularly?', labelTa: 'இல்லை என்றால், மருந்துகளை ஒழுங்காக எடுத்துக்கொள்ளாததற்கான காரணம் என்ன?', type: 'text', placeholder: 'Enter reason', placeholderTa: 'காரணத்தை உள்ளிடவும்', optional: true },
-            { id: 'dietAdherence', label: 'Do you follow the recommended diabetic diet?', labelTa: 'பரிந்துரைக்கப்பட்ட நீரிழிவு உணவு முறையைப் பின்பற்றுகிறீர்களா?', type: 'choice', options: ['Yes', 'No'] },
-            { id: 'dietReason', label: 'If no, what is the reason for not following the diabetic diet?', labelTa: 'இல்லை என்றால், நீரிழிவு உணவு முறையைப் பின்பற்றாததற்கான காரணம் என்ன?', type: 'text', placeholder: 'Enter reason', placeholderTa: 'காரணத்தை உள்ளிடவும்', optional: true },
-            { id: 'comorbid', label: 'Do you have any co-morbid disease?', labelTa: 'உங்களுக்கு ஏதேனும் இணைநோய் உள்ளதா?', type: 'choice', options: ['Yes', 'No'] },
-            { id: 'comorbidType', label: 'If yes, which co-morbid condition(s) do you have?', labelTa: 'ஆம் என்றால், எந்த இணைநோய்(கள்) உள்ளன? (உயர் இரத்த அழுத்தம், இதய நோய், கண் நோய், சிறுநீரக நோய் அல்லது பிற)', type: 'text', placeholder: 'List conditions; leave blank if none', placeholderTa: 'நோய்களைப் பட்டியலிடவும்; இல்லையெனில் காலியாக விடவும்', optional: true },
-            { id: 'activity', label: 'Do you perform regular physical activity?', labelTa: 'நீங்கள் வழக்கமாக உடற்பயிற்சி அல்லது உடல் செயல்பாடு செய்கிறீர்களா?', type: 'choice', options: ['Yes', 'No'] },
-            { id: 'bmi', label: 'What is the participant’s Body Mass Index (BMI), if available?', labelTa: 'பங்கேற்பாளரின் உடல் நிறை குறியீடு (BMI), தகவல் இருந்தால், என்ன?', type: 'number', placeholder: 'Optional', placeholderTa: 'விருப்பத்திற்குரியது', optional: true },
-            { id: 'waistHip', label: 'What is the participant’s waist–hip ratio, if available?', labelTa: 'பங்கேற்பாளரின் இடுப்பு–தொடை விகிதம், தகவல் இருந்தால், என்ன?', type: 'text', placeholder: 'Optional', placeholderTa: 'விருப்பத்திற்குரியது', optional: true },
-            { id: 'bp', label: 'Is there a history of hypertension?', labelTa: 'உயர் இரத்த அழுத்தம் இருந்த வரலாறு உள்ளதா?', type: 'choice', options: ['Yes', 'No'] }
-        ];
+        // Utility: DOM Selectors
+        const $ = (selector, root = document) => root.querySelector(selector);
+        const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
-        function displayNumber(value) { return String(value); }
-        const optionTamil = { Male: 'ஆண்', Female: 'பெண்', Illiterate: 'கல்வியறிவு இல்லை', Primary: 'ஆரம்பக் கல்வி', 'High school': 'உயர்நிலைப் பள்ளி', 'Higher secondary': 'மேல்நிலைப் பள்ளி', Graduate: 'பட்டப்படிப்பு', Single: 'திருமணம் ஆகாதவர்', Married: 'திருமணமானவர்', Separated: 'பிரிந்தவர்', Divorced: 'விவாகரத்து பெற்றவர்', Rural: 'கிராமப்புறம்', Urban: 'நகர்ப்புறம்', 'Less than 1 year': '1 ஆண்டிற்குக் குறைவு', '1–10 years': '1–10 ஆண்டுகள்', '11–20 years': '11–20 ஆண்டுகள்', 'More than 20 years': '20 ஆண்டுகளுக்கு மேல்', 'Once a month': 'மாதத்திற்கு ஒருமுறை', 'Once every 6 months': '6 மாதத்திற்கு ஒருமுறை', 'More than a year': 'ஆண்டிற்கு ஒருமுறை அல்லது அதற்கு மேல்', Never: 'ஒருபோதும் செய்யவில்லை', Regular: 'ஒழுங்காக', Irregular: 'ஒழுங்காக இல்லை', 'Oral hypoglycemic tablets': 'வாய்வழி சர்க்கரை குறைக்கும் மாத்திரைகள்', 'Insulin injection': 'இன்சுலின் ஊசி', 'AYUSH medicines': 'ஆயுஷ் மருந்துகள்', Yes: 'ஆம்', No: 'இல்லை', '≤ ₹6,999': '₹6,999 அல்லது அதற்குக் குறைவு', '₹7,000–10,999': '₹7,000–10,999', '₹11,000–18,999': '₹11,000–18,999', '₹19,000–28,999': '₹19,000–28,999', '₹29,000–38,999': '₹29,000–38,999', '₹39,000–77,999': '₹39,000–77,999', '≥ ₹78,000': '₹78,000 அல்லது அதற்கு மேல்', 'Strongly agree': 'மிகவும் ஒப்புக்கொள்கிறேன்', Agree: 'ஒப்புக்கொள்கிறேன்', 'Not sure': 'உறுதியாகத் தெரியவில்லை', Disagree: 'ஒப்புக்கொள்ளவில்லை', 'Strongly disagree': 'முற்றிலும் ஒப்புக்கொள்ளவில்லை' };
-        function displayQuestionText(q) { return state.language === 'ta' ? (q.labelTa || q.label) : q.label; }
-        function displayOption(option) { return state.language === 'ta' ? (optionTamil[option] || option || '—') : (option || '—'); }
-        function displayPlaceholder(q) { return state.language === 'ta' ? (q.placeholderTa || q.placeholder || '') : (q.placeholder || ''); }
-        function t(key) { return translations[state.language][key] || translations.en[key] || key; }
-        function esc(value = '') { return String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char])); }
-        function setView(view) { state.view = view; $$('.nav-item[data-view]').forEach(el => el.classList.toggle('active', el.dataset.view === view)); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-        function showToast(message) { const toast = $('#toast'); toast.textContent = message; toast.classList.add('show'); clearTimeout(window.toastTimer); window.toastTimer = setTimeout(() => toast.classList.remove('show'), 2600); }
-        function riskFromScore(score) { return score <= 3 ? 'low' : score <= 6 ? 'moderate' : 'high'; }
-        function riskLabel(level) { return t(level); }
-        function freshAssessment() { return { participant: {}, diabetes: {}, clinical: {}, neuropathy: [], retinopathy: [], nephropathy: [], doctorReview: {}, perception: [], createdAt: new Date().toISOString() }; }
-        function applyTheme() { document.documentElement.classList.toggle('dark', state.theme === 'dark'); $('#themeToggle').textContent = state.theme === 'dark' ? '☀' : '☾'; }
-        function applyLanguageFont() { document.documentElement.classList.toggle('lang-ta', state.language === 'ta'); document.documentElement.lang = state.language === 'ta' ? 'ta' : 'en'; }
-        function updateLanguage() { localStorage.setItem('language', state.language); $('#languageToggle').innerHTML = state.language === 'en' ? '<b>EN</b><span>/</span><span>தமிழ்</span>' : '<span>EN</span><span>/</span><b>தமிழ்</b>'; applyLanguageFont(); render(); }
-        function riskBadge(level) { return `<span class="risk-level ${level}">${riskLabel(level)}</span>`; }
-        function scoreFor(type) { const answers = state.assessment?.[type] || []; return answers.filter(Boolean).length; }
-        function assessmentStatus(a) { return a.completedAt ? 'completed' : 'progress'; }
+        // Initialization
+        function init() {
+            loadState();
+            bindGlobalEvents();
+            updateUserProfileUI();
+            renderView();
+            updateLanguageUI();
+            updateThemeUI();
+        }
 
-        function render() {
-            applyTheme();
-            $('#breadcrumbText').textContent = state.view === 'assessment' ? t('assessment') : state.view.charAt(0).toUpperCase() + state.view.slice(1);
+        function loadState() {
+            const saved = localStorage.getItem('diabetesAppData');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                appState.participants = parsed.participants || [];
+                appState.settings = { ...appState.settings, ...(parsed.settings || {}) };
+                if (parsed.userProfile) {
+                    appState.userProfile = { ...appState.userProfile, ...parsed.userProfile };
+                }
+            }
+        }
+
+        function saveState() {
+            localStorage.setItem('diabetesAppData', JSON.stringify({
+                participants: appState.participants,
+                settings: appState.settings,
+                userProfile: appState.userProfile
+            }));
+        }
+
+        function updateUserProfileUI() {
+            const userNameEl = $('#sidebarUserName');
+            const userRoleEl = $('#sidebarUserRole');
+            const avatarEl = $('#sidebarAvatar');
+
+            if (userNameEl) userNameEl.textContent = appState.userProfile.name;
+            if (userRoleEl) userRoleEl.textContent = appState.userProfile.role;
+            if (avatarEl) avatarEl.textContent = appState.userProfile.avatar || generateAvatarInitials(appState.userProfile.name);
+        }
+
+        function generateAvatarInitials(name) {
+            if (!name) return 'DR';
+            const parts = name.trim().split(' ').filter(Boolean);
+            if (parts.length >= 2) {
+                return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+            }
+            return name.substring(0, 2).toUpperCase();
+        }
+
+        function bindGlobalEvents() {
+            $('#languageToggle').addEventListener('click', toggleLanguage);
+            $('#themeToggle').addEventListener('click', toggleTheme);
+            $('#mobileMenu').addEventListener('click', toggleMobileMenu);
+            $('#sidebarBackdrop').addEventListener('click', toggleMobileMenu);
+            $('#collapseContext').addEventListener('click', toggleContextPanel);
+            
+            // Sidebar navigation
+            $$('.nav-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    const view = e.currentTarget.dataset.view;
+                    if (view) {
+                        $$('.nav-item').forEach(nav => nav.classList.remove('active'));
+                        e.currentTarget.classList.add('active');
+                        appState.currentView = view;
+                        renderView();
+                        if (window.innerWidth <= 820) toggleMobileMenu();
+                    }
+                });
+            });
+
+            // Help Notice
+            $('[data-action="notice"]').addEventListener('click', () => showToast(t('notice')));
+            
+            // Modal close
+            $('#closeModal').addEventListener('click', () => $('#videoModal').classList.remove('show'));
+            $('#videoModal').addEventListener('click', (e) => {
+                 if(e.target === $('#videoModal')) $('#videoModal').classList.remove('show');
+            });
+        }
+
+        function toggleLanguage() {
+            appState.lang = appState.lang === 'en' ? 'ta' : 'en';
+            document.documentElement.classList.toggle('lang-ta', appState.lang === 'ta');
+            updateLanguageUI();
+            renderView();
+        }
+
+        function updateLanguageUI() {
+            $('#langEn').style.color = appState.lang === 'en' ? 'var(--teal)' : 'var(--ink-2)';
+            $('#langTa').style.color = appState.lang === 'ta' ? 'var(--teal)' : 'var(--ink-2)';
+            
+            $$('[data-i18n]').forEach(el => {
+                const key = el.dataset.i18n;
+                if (i18n[appState.lang][key]) el.textContent = i18n[appState.lang][key];
+            });
+            $('#breadcrumbText').textContent = t(appState.currentView);
+        }
+
+        function toggleTheme() {
+            appState.theme = appState.theme === 'light' ? 'dark' : 'light';
+            updateThemeUI();
+        }
+
+        function updateThemeUI() {
+            document.documentElement.classList.toggle('dark', appState.theme === 'dark');
+            $('#themeToggle').textContent = appState.theme === 'light' ? '☾' : '☀';
+        }
+
+        function toggleMobileMenu() {
+            $('.sidebar').classList.toggle('open');
+            $('#sidebarBackdrop').classList.toggle('show');
+        }
+
+        function toggleContextPanel() {
+            appState.contextCollapsed = !appState.contextCollapsed;
+            $('#appShell').classList.toggle('context-collapsed', appState.contextCollapsed);
+        }
+
+        function showToast(msg) {
+            const toast = $('#toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // View Router
+        function renderView() {
             const root = $('#viewRoot');
-            if (state.view === 'dashboard') root.innerHTML = dashboardView();
-            else if (state.view === 'assessment') root.innerHTML = assessmentView();
-            else if (state.view === 'review') root.innerHTML = reviewView();
-            else if (state.view === 'results') root.innerHTML = resultsView();
-            else if (state.view === 'reports') root.innerHTML = reportsView();
-            else if (state.view === 'education') root.innerHTML = educationView();
-            else if (state.view === 'participants') root.innerHTML = participantsView();
-            else root.innerHTML = emptyView(t('settings'));
-            contextView();
-            bindViewEvents();
+            root.innerHTML = '';
+            $('#breadcrumbText').textContent = t(appState.currentView);
+
+            switch (appState.currentView) {
+                case 'dashboard': renderDashboard(root); renderContext('dashboard'); break;
+                case 'assessment': renderAssessmentFlow(root); break;
+                case 'participants': renderParticipantsList(root); renderContext('dashboard'); break;
+                case 'reports': renderReportsList(root); renderContext('dashboard'); break;
+                case 'education': renderEducationList(root); renderContext('dashboard'); break;
+                case 'settings': renderSettings(root); renderContext('dashboard'); break;
+            }
         }
 
-        function dashboardView() {
-            const records = state.completed;
-            return `<section class="hero-grid"><div class="hero-panel"><div class="hero-kicker">A guided clinical workspace</div><h1>${t('dashboardTitle')}</h1><p>${t('dashboardSub')}</p><div class="hero-actions"><button class="button-primary" data-action="new">＋ ${t('startAssessment')}</button><button class="button-secondary" data-view="reports">${t('previous')}</button></div><div class="notice" style="margin-top:26px">${t('disclaimer')}</div></div><div class="hero-art" aria-label="Abstract assessment texture"></div></section>
-  <div class="section-heading"><div><h2>Today, in view</h2><p>Research activity at a glance.</p></div><span class="eyebrow">17 AUG 2026</span></div>
-  <div class="kpi-grid"><div class="kpi-card"><span class="eyebrow">${t('total')}</span><div class="kpi-value">${24 + records.length}</div><div class="kpi-delta">+2 this week</div></div><div class="kpi-card"><span class="eyebrow">${t('completed')}</span><div class="kpi-value">${18 + records.filter(a => a.completedAt).length}</div><div class="kpi-delta">75% completion rate</div></div><div class="kpi-card"><span class="eyebrow">${t('inProgress')}</span><div class="kpi-value">${4 + records.filter(a => !a.completedAt).length}</div><div class="kpi-delta" style="color:var(--amber)">Needs review</div></div><div class="kpi-card"><span class="eyebrow">${t('today')}</span><div class="kpi-value">3</div><div class="kpi-delta">Across 2 researchers</div></div></div>
-  <div class="section-heading"><div><h2>${t('recent')}</h2><p>${t('recentSub')}</p></div><button class="button-secondary" data-action="new">＋ New</button></div>${records.length ? assessmentRows(records) : sampleRows()}`;
+        /**
+         * Context Panel Rendering
+         */
+        function renderContext(type, data = null) {
+            const ctx = $('#contextContent');
+            if(appState.contextCollapsed) return;
+            
+            if (type === 'dashboard') {
+                const completed = appState.participants.filter(p => p.status === 'completed').length;
+                ctx.innerHTML = `
+                    <div class="context-card">
+                        <h3>Workspace Summary</h3>
+                        <p>You have ${appState.participants.length} records in this device.</p>
+                        <div class="progress-track"><div class="progress-bar" style="width: ${appState.participants.length ? (completed/appState.participants.length)*100 : 0}%"></div></div>
+                        <div class="progress-meta"><span>Completed</span><span>${completed}/${appState.participants.length}</span></div>
+                    </div>
+                    <div class="context-card">
+                        <h3>${t('disclaimer')}</h3>
+                        <p style="font-size:11px">${appState.lang === 'en' ? 'Data remains local to your browser.' : 'தரவு உங்கள் உலாவியில் மட்டுமே சேமிக்கப்படுகிறது.'}</p>
+                    </div>
+                `;
+            } else if (type === 'assessment_progress') {
+                ctx.innerHTML = `
+                    <div class="context-card">
+                        <h3>Current Session</h3>
+                        <p>Participant: ${data.id || 'New'}</p>
+                        <div class="summary-line"><span>Phase</span> <strong>${data.phase}</strong></div>
+                    </div>
+                    <div class="context-card">
+                        <div class="notice" style="border-left-color: var(--amber)">
+                            ${t('disclaimer')}
+                        </div>
+                    </div>
+                `;
+            }
         }
-        function sampleRows() { const rows = [['P-024', '58', '16 Aug 2026', 'completed', 'moderate', 'low', 'high'], ['P-023', '64', '15 Aug 2026', 'completed', 'low', 'low', 'moderate'], ['P-022', '51', '15 Aug 2026', 'progress', '—', '—', '—']]; return `<div class="assessment-list"><div class="assessment-row header"><span>Participant</span><span>Age</span><span>Date</span><span>Status</span><span>Screening signals</span></div>${rows.map(r => `<div class="assessment-row"><div class="person"><span class="person-mark">${r[0].slice(-2)}</span><div><strong>${r[0]}</strong><small>Research record</small></div></div><span>${r[1]}</span><span class="muted">${r[2]}</span><span class="status-pill ${r[3] === 'completed' ? 'completed' : 'progress'}">${r[3]}</span><span class="risk-text"><b class="risk-${r[4]}">${r[4]}</b> · <b class="risk-${r[5]}">${r[5]}</b> · <b class="risk-${r[6]}">${r[6]}</b></span></div>`).join('')}</div>`; }
-        function assessmentRows(records) { return `<div class="assessment-list"><div class="assessment-row header"><span>Participant</span><span>Age</span><span>Date</span><span>Status</span><span>Screening signals</span></div>${records.slice(-6).reverse().map(a => { const p = a.participant || {}; return `<div class="assessment-row"><div class="person"><span class="person-mark">${esc(String(p.participantNumber || 'P?').slice(-2))}</span><div><strong>${esc(p.participantNumber || 'Unnamed')}</strong><small>Local prototype record</small></div></div><span>${esc(p.age || '—')}</span><span class="muted">${new Date(a.createdAt).toLocaleDateString()}</span><span class="status-pill ${assessmentStatus(a) === 'completed' ? 'completed' : 'progress'}">${assessmentStatus(a)}</span><span class="risk-text"><b class="risk-${riskFromScore((a.neuropathy || []).filter(Boolean).length)}">${riskFromScore((a.neuropathy || []).filter(Boolean).length)}</b> · <b class="risk-${riskFromScore((a.retinopathy || []).filter(Boolean).length)}">${riskFromScore((a.retinopathy || []).filter(Boolean).length)}</b> · <b class="risk-${riskFromScore((a.nephropathy || []).filter(Boolean).length)}">${riskFromScore((a.nephropathy || []).filter(Boolean).length)}</b></span></div>` }).join('')}</div>`; }
 
-        function startAssessment() { state.assessment = freshAssessment(); state.step = 0; state.currentQuestions = participantQuestions; setView('assessment'); }
-        function questionForStep() { if (state.step < participantQuestions.length) return participantQuestions[state.step]; const offset = state.step - participantQuestions.length; if (offset < 30) { const type = offset < 10 ? 'neuropathy' : offset < 20 ? 'retinopathy' : 'nephropathy'; const index = offset % 10; return { id: `${type}_${index}`, type: 'symptom', category: type, label: symptomSets[type][index], labelTa: tamilSymptomSets[type][index], options: ['Yes', 'No'] }; } return { ...perceptionQuestions[offset - 30], type: 'perception' }; }
-        function totalSteps() { return participantQuestions.length + 30 + perceptionQuestions.length; }
-        function currentValue(q) { if (q.type === 'symptom') return state.assessment[q.category][Number(q.id.split('_')[1])]; if (q.type === 'perception') return state.assessment.perception[Number(q.id.split('_')[1])]; return state.assessment.participant[q.id] ?? state.assessment.clinical[q.id]; }
-        function setCurrentValue(q, value) { if (q.type === 'symptom') state.assessment[q.category][Number(q.id.split('_')[1])] = value === 'Yes'; else if (q.type === 'perception') state.assessment.perception[Number(q.id.split('_')[1])] = value; else if (['bmi', 'bp'].includes(q.id)) state.assessment.clinical[q.id] = value; else state.assessment.participant[q.id] = value; }
-        function sectionForStep() { if (state.step < participantQuestions.length) return t('participant'); if (state.step < participantQuestions.length + 10) return t('neuropathy'); if (state.step < participantQuestions.length + 20) return t('retinopathy'); if (state.step < participantQuestions.length + 30) return t('nephropathy'); return t('perception'); }
-        function assessmentView() { const q = questionForStep(); const val = currentValue(q); const progress = Math.round((state.step / totalSteps()) * 100); const isSymptom = q.type === 'symptom'; const isPerception = q.type === 'perception'; const options = q.options || []; return `<div class="assessment-layout"><div class="assessment-head"><div class="assessment-title"><span class="eyebrow">${sectionForStep()}</span><h1>${t('riskAssessment')}</h1><p>${state.language === 'ta' ? 'ஒரு நேரத்தில் ஒரு தெளிவான கேள்வி. பதில்களைத் திருத்தலாம்.' : 'One clear prompt at a time. Answers remain editable.'}</p></div><div class="step-count"><strong>${displayNumber(Math.min(state.step + 1, totalSteps()))}</strong> / ${displayNumber(totalSteps())}</div></div><div class="conversation"><div class="system-note"><span class="system-orb">✦</span><span>${isPerception ? (state.language === 'ta' ? 'பங்கேற்பாளரின் கருத்துக்கு மிகவும் பொருத்தமான விருப்பத்தைத் தேர்ந்தெடுக்கவும்.' : 'Select the option that best reflects the participant’s view.') : isSymptom ? (state.language === 'ta' ? 'பங்கேற்பாளர் தற்போது அனுபவிக்கும் அறிகுறிக்கு ஏற்ற பதிலைத் தேர்ந்தெடுக்கவும்.' : 'Select the answer that best describes the participant.') : (state.language === 'ta' ? 'பங்கேற்பாளரின் பதில் அல்லது கிடைக்கும் மருத்துவப் பதிவைப் பயன்படுத்தவும்.' : 'Use the participant’s response or available clinical record.')}</span></div><article class="question-card"><div class="question-label">${t('question')} ${displayNumber(state.step + 1)} · ${sectionForStep()}</div><h2>${displayQuestionText(q)}</h2><p>${isSymptom ? (state.language === 'ta' ? 'அறிகுறிகளை அடிப்படையாகக் கொண்ட திரையிடல் கேள்வி.' : 'Symptom-based screening question.') : isPerception ? (state.language === 'ta' ? 'கீழ்க்கண்ட கூற்றைப் பற்றி உங்கள் கருத்தைத் தெரிவிக்கவும்.' : 'Please indicate your view of the statement below.') : (state.language === 'ta' ? 'பங்கேற்பாளரின் பதில் அல்லது கிடைக்கும் மருத்துவப் பதிவைப் பயன்படுத்தவும்.' : 'Use the participant’s response or available clinical record.')}</p>${q.type === 'choice' || isSymptom || isPerception ? `<div class="answer-grid">${options.map((option, i) => `<button type="button" class="answer-button ${String(val) === String(option) || (typeof val === 'boolean' && String(val) === (option === 'Yes' ? 'true' : 'false')) ? 'selected' : ''}" data-answer="${esc(option)}"><span class="answer-index">${displayNumber(i + 1)}</span>${esc(displayOption(option))}</button>`).join('')}</div>` : `<input class="text-input" id="currentInput" type="${q.type === 'number' ? 'number' : 'text'}" value="${esc(val || '')}" placeholder="${esc(displayPlaceholder(q))}" autofocus>`}<div class="conversation-footer"><button type="button" class="back-button" data-action="back">← ${t('back')}</button><button type="button" class="continue-button ${val != null && val !== '' ? 'ready' : ''}" data-action="continue" ${val == null || val === '' ? (q.optional ? '' : 'disabled') : ''}>${state.step === totalSteps() - 1 ? t('review') : t('continue')} →</button></div></article><div style="margin-top:20px"><div class="progress-track"><div class="progress-bar" style="width:${progress}%"></div></div><div class="progress-meta"><span>${sectionForStep()}</span><span>${state.language === 'ta' ? progress + '% முடிந்தது' : progress + '% complete'}</span></div></div></div></div>`; }
-        function reviewView() { const a = state.assessment; const p = a.participant; const groups = [['Participant', [['Participant number', p.participantNumber], ['Age', p.age], ['Sex', p.sex], ['Education', p.education], ['Occupation', p.occupation], ['Duration', p.duration]]], ['Clinical & lifestyle', [['Medication adherence', p.medication], ['Drug type', p.drugType], ['Diet adherence', p.dietAdherence], ['Co-morbid disease', p.comorbid], ['Co-morbid detail', p.comorbidType], ['Physical activity', p.activity], ['BMI', p.bmi], ['Waist–hip ratio', p.waistHip], ['Hypertension history', a.clinical?.bp]]], ['Screening scores', [['Neuropathy', scoreFor('neuropathy') + '/10'], ['Retinopathy', scoreFor('retinopathy') + '/10'], ['Nephropathy', scoreFor('nephropathy') + '/10']]]]; return `<div class="assessment-head"><div class="assessment-title"><span class="eyebrow">${t('review')}</span><h1>${t('riskAssessment')}</h1><p>Review the screening picture before saving the local record.</p></div><button class="button-primary" data-action="results">Calculate screening results →</button></div><div class="review-grid">${groups.map(g => `<article class="panel-card"><h3>${g[0]}</h3>${g[1].map(x => `<div class="review-item"><span>${x[0]}</span><strong>${esc(x[1] || 'Not entered')}</strong></div>`).join('')}</article>`).join('')}</div><div class="notice" style="margin-top:18px">${t('disclaimer')}</div>`; }
-        function resultsView() { const scores = { neuropathy: scoreFor('neuropathy'), retinopathy: scoreFor('retinopathy'), nephropathy: scoreFor('nephropathy') }; const overall = Object.values(scores).reduce((a, b) => a + b, 0); return `<div class="assessment-head"><div class="assessment-title"><span class="eyebrow">${t('analysis')}</span><h1>Your screening picture</h1><p>These scores summarize entered symptoms; they do not establish a diagnosis.</p></div><button class="button-primary" data-action="save">${t('save')} →</button></div><div class="result-grid"><article class="panel-card risk-card"><span class="eyebrow">Overall assessment score</span><div class="risk-score">${overall}<small style="font:14px Manrope;color:var(--muted)"> / 30</small></div><span class="risk-level ${riskFromScore(Math.round(overall / 3))}">${riskLabel(riskFromScore(Math.round(overall / 3)))}</span><div class="recommendation">${overall < 10 ? 'Continue healthy lifestyle practices and regular check-ups.' : overall < 18 ? 'Follow preventive strategies and monitor symptoms regularly.' : 'Discuss these screening signals with a qualified physician for further evaluation.'}</div></article><article class="panel-card"><h3>Complication signals</h3>${Object.entries(scores).map(([k, v]) => `<div class="summary-line"><span>${t(k)}</span><strong class="risk-text risk-${riskFromScore(v)}">${v}/10 · ${riskLabel(riskFromScore(v))}</strong></div>`).join('')}</article></div><div class="section-heading"><div><h2>${t('educationTitle')}</h2><p>Resources matched to the screening categories.</p></div></div>${educationCards(scores)}`; }
-        function educationCards(scores) { const cards = [['Foot care', 'Daily inspection, comfortable footwear, and timely clinical review.', 'Neuropathy'], ['Eye care', 'Regular eye checkups and attention to changes in vision.', 'Retinopathy'], ['Protecting your kidneys', 'Blood pressure monitoring and appropriate urine testing.', 'Nephropathy']]; return `<div class="video-grid">${cards.map(c => `<article class="video-card"><div class="video-art"></div><div class="video-copy"><strong>${c[0]}</strong><small>${c[1]}</small><div class="eyebrow" style="margin-top:13px">${c[2]} resource · 2 min</div></div></article>`).join('')}</div>`; }
-        function reportsView() { if (!state.completed.length) return emptyView(t('finalReport')); return `<div class="section-heading" style="margin-top:0"><div><span class="eyebrow">ARCHIVE</span><h2>${t('finalReport')}</h2><p>Saved local prototype records.</p></div><button class="button-primary" data-action="new">＋ ${t('startAssessment')}</button></div>${assessmentRows(state.completed)}`; }
-        function participantsView() { return `<div class="section-heading" style="margin-top:0"><div><span class="eyebrow">RESEARCH RECORDS</span><h2>${t('participants')}</h2><p>Participant identifiers remain local to this browser.</p></div></div>${state.completed.length ? assessmentRows(state.completed) : emptyView(t('participants'))}`; }
-        function educationView() { return `<div class="section-heading" style="margin-top:0"><div><span class="eyebrow">PREVENTION LIBRARY</span><h2>${t('educationTitle')}</h2><p>Short educational modules to pair with a screening review.</p></div></div>${educationCards({})}<div class="notice" style="margin-top:18px">Educational content is placeholder copy for the prototype. Replace with approved research media before clinical use.</div>`; }
-        function emptyView(title) { return `<div class="empty-state"><h2>${esc(title)}</h2><p>${t('noDataSub')}</p><button class="button-primary" data-action="new">＋ ${t('startAssessment')}</button></div>`; }
-        function contextView() { const c = $('#contextContent'); if (state.view === 'assessment' && state.assessment) { const p = state.assessment.participant; const progress = Math.round((state.step / totalSteps()) * 100); c.innerHTML = `<div class="context-card"><span class="eyebrow">CURRENT SECTION</span><h3>${sectionForStep()}</h3><p>${state.step < participantQuestions.length ? (state.language === 'ta' ? 'பங்கேற்பாளர் தகவல்கள்' : 'Participant information') : state.step < participantQuestions.length + 30 ? (state.language === 'ta' ? 'அறிகுறி அடிப்படையிலான திரையிடல்' : 'Symptom-based screening') : (state.language === 'ta' ? 'செயலி கருத்து' : 'App perception')}</p><div class="progress-track"><div class="progress-bar" style="width:${progress}%"></div></div><div class="progress-meta"><span>${displayNumber(state.step + 1)} / ${displayNumber(totalSteps())}</span><span>${progress}%</span></div></div><div class="context-card"><span class="eyebrow">PARTICIPANT SUMMARY</span><div class="summary-line"><span>Record</span><strong>${esc(p.participantNumber || 'New')}</strong></div><div class="summary-line"><span>Age</span><strong>${esc(p.age || '—')}</strong></div><div class="summary-line"><span>Duration</span><strong>${esc(p.duration || '—')}</strong></div></div><div class="context-card"><span class="eyebrow">SCREENING NOTE</span><p>Risk levels are based on the supplied symptom scoring bands and are intended for review, not diagnosis.</p></div>`; } else c.innerHTML = `<div class="context-card"><span class="eyebrow">WORKSPACE NOTE</span><h3>Measured, attentive, trustworthy.</h3><p>Use this prototype to walk through the research workflow before connecting approved data and media services.</p></div><div class="context-card"><span class="eyebrow">QUICK STATUS</span><div class="summary-line"><span>Language</span><strong>${state.language === 'en' ? 'English' : 'தமிழ்'}</strong></div><div class="summary-line"><span>Theme</span><strong>${state.theme === 'dark' ? 'Dark' : 'Light'}</strong></div></div>`; }
-        function bindAdvanceButton(el) { let busy = false; const run = event => { if (event) event.preventDefault(); if (busy) return; busy = true; advance(); window.setTimeout(() => { busy = false; }, 260); }; el.onclick = run; el.onpointerup = event => { if (event.pointerType === 'touch' || event.pointerType === 'pen') run(event); }; }
-        function bindViewEvents() {
-            $$('.nav-item[data-view]').forEach(el => el.onclick = () => setView(el.dataset.view)); $$('[data-action="new"]').forEach(el => el.onclick = startAssessment); $$('[data-action="soon"]').forEach(el => el.onclick = () => showToast(t('soon'))); $$('[data-action="notice"]').forEach(el => el.onclick = () => showToast(t('notice'))); $$('[data-action="review"]').forEach(el => el.onclick = () => { state.view = 'review'; render(); });
-            $$('[data-action="results"]').forEach(el => el.onclick = () => { state.view = 'results'; renderResults(); }); $$('[data-action="save"]').forEach(el => el.onclick = saveAssessment); $$('[data-view="reports"]').forEach(el => el.onclick = () => setView('reports'));
-            if (state.view === 'assessment') { $$('.answer-button').forEach(btn => btn.type = 'button'); $$('.answer-button').forEach(btn => btn.onclick = event => { event.preventDefault(); const q = questionForStep(); setCurrentValue(q, btn.dataset.answer); render(); }); const input = $('#currentInput'); if (input) { input.oninput = () => { setCurrentValue(questionForStep(), input.value); const next = $('[data-action="continue"]'); if (next) { next.disabled = !input.value.trim(); next.classList.toggle('ready', Boolean(input.value.trim())); } }; input.onkeydown = e => { if (e.key === 'Enter' && input.value.trim()) { e.preventDefault(); advance(); } } } $$('[data-action="continue"]').forEach(el => { el.type = 'button'; bindAdvanceButton(el); }); $$('[data-action="back"]').forEach(el => { el.type = 'button'; el.onclick = () => { if (state.step > 0) { state.step--; render(); } else setView('dashboard'); }; }); }
+        /**
+         * Views
+         */
+        
+        // 1. Dashboard
+        function renderDashboard(root) {
+            const completed = appState.participants.filter(p => p.status === 'completed').length;
+            const today = appState.participants.filter(p => new Date(p.date).toDateString() === new Date().toDateString()).length;
+            
+            root.innerHTML = `
+                <div class="hero-grid">
+                    <div class="hero-panel">
+                        <div class="hero-kicker">Clinical Prototype</div>
+                        <h1>${t('dashboardTitle')}</h1>
+                        <p>${t('dashboardSub')}</p>
+                        <div style="display:flex; gap:15px">
+                            <button class="button-primary" id="btnStartAss">${t('startAssessment')}</button>
+                            <button class="button-secondary" onclick="appState.currentView='participants'; renderView()">${t('previous')}</button>
+                        </div>
+                    </div>
+                    <div class="hero-art"></div>
+                </div>
+                
+                <div class="section-heading">
+                    <div>
+                        <h2>${t('recent')}</h2>
+                        <p>${t('recentSub')}</p>
+                    </div>
+                </div>
+                
+                <div class="kpi-grid mb-8">
+                    <div class="kpi-card"><span class="eyebrow">${t('total')}</span><div class="kpi-value">${appState.participants.length}</div></div>
+                    <div class="kpi-card"><span class="eyebrow">${t('completed')}</span><div class="kpi-value">${completed}</div></div>
+                    <div class="kpi-card"><span class="eyebrow">${t('today')}</span><div class="kpi-value">${today}</div></div>
+                </div>
+                
+                ${appState.participants.length === 0 ? `
+                    <div class="empty-state">
+                        <h2>${t('noData')}</h2>
+                        <p>${t('noDataSub')}</p>
+                    </div>
+                ` : `
+                    <div class="assessment-list">
+                        <div class="assessment-row header">
+                            <div>${t('participant')}</div>
+                            <div>Date</div>
+                            <div>Status</div>
+                            <div>Action</div>
+                        </div>
+                        ${appState.participants.slice(0, 5).map(p => `
+                            <div class="assessment-row" onclick="viewReport('${p.id}')">
+                                <div class="person">
+                                    <div class="person-mark">${p.name ? p.name.charAt(0).toUpperCase() : 'P'}</div>
+                                    <div><strong>${p.name || p.id}</strong><small>Age: ${p.age || '--'}</small></div>
+                                </div>
+                                <div><small style="color:var(--muted)">${new Date(p.date).toLocaleDateString()}</small></div>
+                                <div><span class="status-pill ${p.status === 'completed' ? 'completed' : 'progress'}">${p.status}</span></div>
+                                <div><button class="button-secondary" style="padding: 5px 10px; font-size: 11px">View</button></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `}
+            `;
+
+            $('#btnStartAss').addEventListener('click', () => {
+                startNewAssessment();
+            });
         }
-        function advance() { const q = questionForStep(); const value = currentValue(q); const unanswered = value === undefined || value === null || value === ''; if (unanswered && !q.optional) { showToast(t('required')); return; } if (state.step < totalSteps() - 1) { state.step++; render(); } else { state.view = 'review'; render(); } }
-        function renderResults() { $('#viewRoot').innerHTML = resultsView(); contextView(); bindViewEvents(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-        function saveAssessment() { state.assessment.completedAt = new Date().toISOString(); state.completed.push(state.assessment); localStorage.setItem('diabetesAssessments', JSON.stringify(state.completed)); showToast(t('saved')); setView('reports'); }
 
-        $('#languageToggle').onclick = () => { state.language = state.language === 'en' ? 'ta' : 'en'; updateLanguage(); };
-        $('#themeToggle').onclick = () => { state.theme = state.theme === 'dark' ? 'light' : 'dark'; localStorage.setItem('theme', state.theme); applyTheme(); };
-        $('#mobileMenu').onclick = () => { $('.sidebar').classList.toggle('open'); $('#sidebarBackdrop').classList.toggle('show'); };
-        $('#sidebarBackdrop').onclick = () => { $('.sidebar').classList.remove('open'); $('#sidebarBackdrop').classList.remove('show'); };
-        $$('.nav-item[data-view]').forEach(el => el.addEventListener('click', () => { $('.sidebar').classList.remove('open'); $('#sidebarBackdrop').classList.remove('show'); }));
-        $('#collapseContext').onclick = () => $('#contextPanel').classList.toggle('collapsed');
+        // 2. Settings (Includes User Profile Name Change)
+        function renderSettings(root) {
+            root.innerHTML = `
+                <div class="settings-panel">
+                     <h2 class="form-section-title">${t('profileSettings')}</h2>
+                     <div class="settings-group">
+                          <div class="field mb-4">
+                               <label for="inpUserName">${t('userName')}</label>
+                               <input type="text" id="inpUserName" class="text-input" value="${appState.userProfile.name}" placeholder="e.g. Dr. R. Meena">
+                          </div>
+                          <div class="field mb-4">
+                               <label for="inpUserRole">${t('userRole')}</label>
+                               <input type="text" id="inpUserRole" class="text-input" value="${appState.userProfile.role}" placeholder="e.g. Research clinician">
+                          </div>
+                          <button class="button-primary" id="btnSaveProfile">${t('updateProfile')}</button>
+                     </div>
 
-        state.theme = localStorage.getItem('theme') || 'light';
-        state.language = localStorage.getItem('language') || state.language || 'en';
-        applyLanguageFont();
-        render();
+                     <h2 class="form-section-title">${t('settingsTitle')}</h2>
+                     
+                     <div class="settings-group">
+                          <div class="settings-row">
+                               <div>
+                                    <strong>${t('enablePdf')}</strong>
+                                    <div style="font-size:12px; color:var(--muted)">Allow generation of PDF reports after assessment</div>
+                               </div>
+                               <label class="toggle-switch">
+                                    <input type="checkbox" id="setPdf" ${appState.settings.enablePdfExport ? 'checked' : ''}>
+                                    <span class="toggle-slider"></span>
+                               </label>
+                          </div>
+                          <div class="settings-row">
+                               <div>
+                                    <strong>${t('enableDocx')}</strong>
+                                    <div style="font-size:12px; color:var(--muted)">Allow exporting reports to Word format</div>
+                               </div>
+                               <label class="toggle-switch">
+                                    <input type="checkbox" id="setDocx" ${appState.settings.enableDocxExport ? 'checked' : ''}>
+                                    <span class="toggle-slider"></span>
+                               </label>
+                          </div>
+                          <div class="settings-row">
+                               <div>
+                                    <strong>${t('showScores')}</strong>
+                                    <div style="font-size:12px; color:var(--muted)">Display numeric risk scores alongside categories</div>
+                               </div>
+                               <label class="toggle-switch">
+                                    <input type="checkbox" id="setScores" ${appState.settings.showRiskScores ? 'checked' : ''}>
+                                    <span class="toggle-slider"></span>
+                               </label>
+                          </div>
+                          <div class="settings-row">
+                               <div>
+                                    <strong>${t('autoVideos')}</strong>
+                                    <div style="font-size:12px; color:var(--muted)">Automatically recommend educational videos based on high risk areas</div>
+                               </div>
+                               <label class="toggle-switch">
+                                    <input type="checkbox" id="setVideos" ${appState.settings.autoRecommendVideos ? 'checked' : ''}>
+                                    <span class="toggle-slider"></span>
+                               </label>
+                          </div>
+                     </div>
+                </div>
+            `;
+            
+            $('#btnSaveProfile').addEventListener('click', () => {
+                const newName = $('#inpUserName').value.trim();
+                const newRole = $('#inpUserRole').value.trim();
+                if (newName) {
+                    appState.userProfile.name = newName;
+                    appState.userProfile.role = newRole || 'Clinician';
+                    appState.userProfile.avatar = generateAvatarInitials(newName);
+                    saveState();
+                    updateUserProfileUI();
+                    showToast("Profile updated successfully!");
+                }
+            });
+
+            $('#setPdf').addEventListener('change', (e) => { appState.settings.enablePdfExport = e.target.checked; saveState(); });
+            $('#setDocx').addEventListener('change', (e) => { appState.settings.enableDocxExport = e.target.checked; saveState(); });
+            $('#setScores').addEventListener('change', (e) => { appState.settings.showRiskScores = e.target.checked; saveState(); });
+            $('#setVideos').addEventListener('change', (e) => { appState.settings.autoRecommendVideos = e.target.checked; saveState(); });
+        }
+
+        // 3. Assessment Flow Engine
+        function startNewAssessment() {
+            appState.currentParticipant = {
+                id: 'PID-' + Math.floor(Math.random() * 10000),
+                date: new Date().toISOString(),
+                status: 'in_progress',
+                data: {
+                    demographics: {},
+                    health: {},
+                    risk: { neuropathy: 0, retinopathy: 0, nephropathy: 0, gastroparesis: 0, peripheral: 0, stroke: 0, cardiovascular: 0 },
+                    perception: {}
+                }
+            };
+            appState.assessmentState.step = 0;
+            appState.assessmentState.phase = 'demographics';
+            appState.currentView = 'assessment';
+            renderView();
+        }
+
+        function renderAssessmentFlow(root) {
+            const phase = appState.assessmentState.phase;
+            renderContext('assessment_progress', { id: appState.currentParticipant.id, phase: phase });
+            
+            let content = '';
+            
+            if (phase === 'demographics') {
+                content = renderFormSection('demographics', questionnaire.demographics, t('part1Title'));
+            } else if (phase === 'health') {
+                content = renderFormSection('health', questionnaire.health, t('clinical'));
+            } else if (phase === 'risk_intro') {
+                content = `
+                    <div class="conversation">
+                         <div class="question-card">
+                              <h2>${t('riskAssessTitle')}</h2>
+                              <p>The following sections will assess symptoms related to various complications. Please answer Yes/No based on current experiences.</p>
+                              <div class="conversation-footer">
+                                   <button class="continue-button" onclick="nextPhase('risk_neuropathy')">${t('continue')}</button>
+                              </div>
+                         </div>
+                    </div>
+                `;
+            } else if (phase.startsWith('risk_')) {
+                const riskType = phase.split('_')[1]; // neuropathy, retinopathy, etc.
+                const sections = Object.keys(questionnaire.riskAssessment);
+                const currentIndex = sections.indexOf(riskType);
+                content = renderRiskQuestions(riskType, sections, currentIndex);
+            } else if (phase === 'perception') {
+                content = renderPerceptionSurvey();
+            } else if (phase === 'results') {
+                content = renderResults();
+            }
+
+            root.innerHTML = content;
+        }
+
+        function renderFormSection(dataKey, formFields, title) {
+            const pData = appState.currentParticipant.data[dataKey] || {};
+            
+            let html = `
+                <div class="assessment-layout">
+                    <div class="assessment-head">
+                        <div class="assessment-title">
+                            <h1>${title}</h1>
+                        </div>
+                    </div>
+                    <div class="question-card">
+                        <div class="form-grid">
+            `;
+            
+            formFields.forEach(f => {
+                const val = pData[f.id] || '';
+                const label = tt(f.label);
+                html += `<div class="field">
+                    <label>${label}</label>
+                `;
+                
+                if (f.type === 'select') {
+                    html += `<select class="select-input" id="inp_${f.id}" required>
+                        <option value="">-- Select --</option>
+                        ${f.options.map(o => `<option value="${o.val}" ${val === o.val ? 'selected' : ''}>${tt(o)}</option>`).join('')}
+                    </select>`;
+                } else if (f.type === 'number') {
+                    html += `<input type="number" class="text-input" id="inp_${f.id}" value="${val}" required>`;
+                } else {
+                    html += `<input type="text" class="text-input" id="inp_${f.id}" value="${val}" required>`;
+                }
+                html += `</div>`;
+            });
+            
+            html += `
+                        </div>
+                        <div class="conversation-footer">
+                             <button class="back-button" onclick="prevPhase('${dataKey}')">${t('back')}</button>
+                             <button class="continue-button" onclick="saveFormSection('${dataKey}')">${t('continue')}</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            return html;
+        }
+
+        function saveFormSection(dataKey) {
+            let allFilled = true;
+            const fields = questionnaire[dataKey];
+            fields.forEach(f => {
+                const el = document.getElementById(`inp_${f.id}`);
+                if (el) {
+                    if (!el.value) allFilled = false;
+                    appState.currentParticipant.data[dataKey][f.id] = el.value;
+                }
+            });
+            
+            // Allow skipping validation for prototype ease, but warn
+            if(dataKey === 'demographics') {
+                appState.currentParticipant.name = appState.currentParticipant.data.demographics.participant_no;
+                appState.currentParticipant.age = appState.currentParticipant.data.demographics.age;
+            }
+
+            if (dataKey === 'demographics') nextPhase('health');
+            else if (dataKey === 'health') nextPhase('risk_intro');
+        }
+
+        function renderRiskQuestions(riskType, sectionsList, index) {
+            const riskData = questionnaire.riskAssessment[riskType];
+            const savedScores = appState.currentParticipant.data.risk[riskType + '_answers'] || {};
+            
+            let html = `
+                <div class="conversation">
+                    <div class="assessment-head">
+                        <div class="assessment-title">
+                            <p>${t('riskAssessment')} ${index + 1} of ${sectionsList.length}</p>
+                            <h1>${tt(riskData.title)}</h1>
+                        </div>
+                    </div>
+                    <div id="riskQuestionsContainer">
+            `;
+            
+            riskData.questions.forEach((q, i) => {
+                 const ans = savedScores[q.id];
+                 html += `
+                    <div class="question-card mb-4">
+                         <div class="question-label">Q${i+1}</div>
+                         <h2 style="font-size:20px">${tt(q)}</h2>
+                         <div class="answer-grid mt-4">
+                              <button class="answer-button ${ans === 1 ? 'selected' : ''}" onclick="selectRiskAnswer('${riskType}', '${q.id}', 1, this)">${t('yes')}</button>
+                              <button class="answer-button ${ans === 0 ? 'selected' : ''}" onclick="selectRiskAnswer('${riskType}', '${q.id}', 0, this)">${t('no')}</button>
+                         </div>
+                    </div>
+                 `;
+            });
+            
+            html += `
+                    </div>
+                    <div class="conversation-footer mb-8">
+                         <button class="back-button" onclick="prevPhase('risk_${riskType}')">${t('back')}</button>
+                         <button class="continue-button" onclick="calcAndNextRisk('${riskType}', ${index}, '${sectionsList.join(',')}')">${t('continue')}</button>
+                    </div>
+                </div>
+            `;
+            
+            // Ensure global function exists for answer selection
+            window.selectRiskAnswer = function(type, qId, val, btn) {
+                if(!appState.currentParticipant.data.risk[type + '_answers']) {
+                    appState.currentParticipant.data.risk[type + '_answers'] = {};
+                }
+                appState.currentParticipant.data.risk[type + '_answers'][qId] = val;
+                
+                // UI update
+                const parent = btn.closest('.answer-grid');
+                parent.querySelectorAll('.answer-button').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+            };
+            
+            return html;
+        }
+
+        function calcAndNextRisk(currentRiskType, index, sectionsStr) {
+            const sections = sectionsStr.split(',');
+            const answers = appState.currentParticipant.data.risk[currentRiskType + '_answers'] || {};
+            
+            // Sum scores (Yes = 1, No = 0)
+            let total = 0;
+            Object.values(answers).forEach(v => total += v);
+            appState.currentParticipant.data.risk[currentRiskType] = total;
+            
+            if (index < sections.length - 1) {
+                nextPhase('risk_' + sections[index + 1]);
+            } else {
+                nextPhase('perception');
+            }
+        }
+
+        function renderPerceptionSurvey() {
+            let html = `
+                <div class="conversation">
+                    <div class="assessment-head">
+                        <div class="assessment-title">
+                            <h1>${t('perceptionTitle')}</h1>
+                        </div>
+                    </div>
+            `;
+            
+            questionnaire.perception.forEach((q, i) => {
+                html += `
+                    <div class="question-card mb-4">
+                         <h2 style="font-size:18px">${tt(q)}</h2>
+                         <div class="mt-4">
+                `;
+                
+                if (q.type === 'rating') {
+                     html += `
+                         <div style="display:flex; justify-content:space-between; gap:5px; max-width:400px">
+                              ${[1,2,3,4,5].map(v => `<button class="answer-button" style="text-align:center; padding:10px" onclick="selectPerception('${q.id}', ${v}, this)">${v}</button>`).join('')}
+                         </div>
+                     `;
+                } else if (q.type === 'select') {
+                     html += `
+                         <div class="answer-grid">
+                              ${q.options.map(o => `<button class="answer-button" onclick="selectPerception('${q.id}', '${o.val}', this)">${tt(o)}</button>`).join('')}
+                         </div>
+                     `;
+                }
+                
+                html += `</div></div>`;
+            });
+            
+            window.selectPerception = function(qId, val, btn) {
+                appState.currentParticipant.data.perception[qId] = val;
+                const parent = btn.closest('div');
+                parent.querySelectorAll('.answer-button').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+            };
+            
+            html += `
+                <div class="conversation-footer mb-8">
+                     <button class="back-button" onclick="prevPhase('perception')">${t('back')}</button>
+                     <button class="continue-button" onclick="finishAssessment()">${t('continue')}</button>
+                </div></div>
+            `;
+            return html;
+        }
+
+        function finishAssessment() {
+            appState.currentParticipant.status = 'completed';
+            
+            // Check if participant exists, update or push
+            const idx = appState.participants.findIndex(p => p.id === appState.currentParticipant.id);
+            if(idx >= 0) appState.participants[idx] = appState.currentParticipant;
+            else appState.participants.push(appState.currentParticipant);
+            
+            saveState();
+            showToast(t('saved'));
+            nextPhase('results');
+        }
+
+        function renderResults() {
+            const p = appState.currentParticipant;
+            const risks = p.data.risk;
+            const rules = questionnaire.riskAssessment;
+            
+            let resultsHtml = '';
+            let recommendations = new Set();
+            let highRiskCount = 0;
+            
+            // Generate Risk Rows
+            Object.keys(rules).forEach(key => {
+                const score = risks[key] || 0;
+                const rule = rules[key].scoring;
+                let level = 'Low Risk';
+                let classN = 'low';
+                let locLevel = t('low');
+                
+                if (score >= rule.high[0]) { level = 'High Risk'; classN = 'high'; locLevel = t('high'); highRiskCount++; recommendations.add('high'); }
+                else if (score >= rule.moderate[0]) { level = 'Moderate Risk'; classN = 'moderate'; locLevel = t('moderate'); recommendations.add('moderate'); }
+                else { recommendations.add('low'); }
+                
+                resultsHtml += `
+                    <div class="review-item" style="align-items:center;">
+                        <strong>${t(key)}</strong>
+                        ${appState.settings.showRiskScores ? `<span style="margin-right:15px">Score: ${score}/${rule.max}</span>` : ''}
+                        <span class="risk-level ${classN}">${locLevel}</span>
+                    </div>
+                `;
+            });
+            
+            // Determine Global Recommendation Text
+            let recText = "Low Risk: Continue healthy lifestyle and regular check-ups.";
+            if (recommendations.has('high')) recText = "High Risk: Consult a physician for further medical evaluation immediately.";
+            else if (recommendations.has('moderate')) recText = "Moderate Risk: Follow preventive strategies and monitor symptoms regularly.";
+
+            // Filter Videos based on risks (mock logic)
+            let recomVideos = [];
+            if (appState.settings.autoRecommendVideos) {
+                if (risks.neuropathy >= rules.neuropathy.scoring.moderate[0]) recomVideos.push(videos.find(v => v.category === 'neuropathy'));
+                if (risks.nephropathy >= rules.nephropathy.scoring.moderate[0]) recomVideos.push(videos.find(v => v.category === 'nephropathy'));
+                if (risks.retinopathy >= rules.retinopathy.scoring.moderate[0]) recomVideos.push(videos.find(v => v.category === 'retinopathy'));
+                if (recomVideos.length === 0) recomVideos = videos.filter(v => v.category === 'general').slice(0, 2);
+            }
+
+            let html = `
+                <div class="assessment-layout">
+                    <div class="assessment-head">
+                        <div class="assessment-title">
+                            <h1>${t('resultsTitle')}</h1>
+                            <p>Participant ID: ${p.id}</p>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            ${appState.settings.enablePdfExport ? `<button class="button-secondary" onclick="exportPDF()">${t('exportPdf')}</button>` : ''}
+                            ${appState.settings.enableDocxExport ? `<button class="button-secondary" onclick="exportDOCX()">${t('exportDocx')}</button>` : ''}
+                        </div>
+                    </div>
+                    
+                    <div class="result-grid">
+                        <div class="panel-card">
+                            <h3>Complication Risk Profile</h3>
+                            <div>${resultsHtml}</div>
+                            
+                            <div class="recommendation">
+                                <strong>${t('recommendation')}:</strong> ${recText}
+                            </div>
+                        </div>
+                        
+                        <div class="panel-card">
+                            <h3>${t('analysis')}</h3>
+                            <div class="system-note">
+                                <div class="system-orb">AI</div>
+                                <div>Based on the provided data, the participant shows ${highRiskCount > 0 ? `significant risk markers in ${highRiskCount} areas` : 'stable low-risk indicators'}. The model flags sensory/nerve responses as primary inputs for neuropathy screening. Ensure clinical follow-up for any 'High Risk' classifications.</div>
+                            </div>
+                        </div>
+                    </div>
+            `;
+            
+            if (recomVideos.length > 0) {
+                html += `
+                    <div class="mt-8">
+                        <h3>${t('educationTitle')}</h3>
+                        <div class="video-grid">
+                            ${recomVideos.map(v => `
+                                <div class="video-card" onclick="playVideo('${v.id}')">
+                                    <div class="video-art"></div>
+                                    <div class="video-copy">
+                                        <strong>${tt(v.title)}</strong>
+                                        <small>${tt(v.desc)}</small>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += `
+                <div class="mt-8 flex justify-between">
+                    <button class="button-secondary" onclick="appState.currentView='dashboard'; renderView()">${t('dashboard')}</button>
+                </div></div>
+            `;
+            
+            // Setup hidden export container data
+            prepareExportData(p, recText);
+
+            return html;
+        }
+
+        // Phase Navigation Logic
+        function nextPhase(current) {
+            const sequence = ['demographics', 'health', 'risk_intro', 'risk_neuropathy', 'risk_retinopathy', 'risk_nephropathy', 'risk_gastroparesis', 'risk_peripheral', 'risk_stroke', 'risk_cardiovascular', 'perception', 'results'];
+            const idx = sequence.indexOf(current);
+            if (idx >= 0 && idx < sequence.length - 1) {
+                appState.assessmentState.phase = sequence[idx + 1];
+                renderAssessmentFlow($('#viewRoot'));
+                window.scrollTo(0,0);
+            }
+        }
+        
+        function prevPhase(current) {
+             const sequence = ['demographics', 'health', 'risk_intro', 'risk_neuropathy', 'risk_retinopathy', 'risk_nephropathy', 'risk_gastroparesis', 'risk_peripheral', 'risk_stroke', 'risk_cardiovascular', 'perception', 'results'];
+             let target = current;
+             // Handle custom back jumps
+             if(current.startsWith('risk_')) {
+                  const riskIdx = sequence.indexOf(current);
+                  target = sequence[riskIdx - 1];
+             } else if (current === 'perception') target = 'risk_cardiovascular';
+             else if (current === 'health') target = 'demographics';
+             
+             if(target) {
+                  appState.assessmentState.phase = target;
+                  renderAssessmentFlow($('#viewRoot'));
+                  window.scrollTo(0,0);
+             }
+        }
+        
+        window.viewReport = function(id) {
+             const p = appState.participants.find(x => x.id === id);
+             if(p) {
+                  appState.currentParticipant = p;
+                  appState.currentView = 'assessment';
+                  appState.assessmentState.phase = 'results';
+                  renderView();
+             }
+        }
+
+        // Lists views
+        function renderParticipantsList(root) {
+            root.innerHTML = `<h2 class="form-section-title">${t('participants')}</h2>`;
+            if(appState.participants.length === 0) {
+                 root.innerHTML += `<div class="empty-state">${t('noData')}</div>`;
+            } else {
+                 let list = `<div class="assessment-list"><div class="assessment-row header"><div>ID</div><div>Name</div><div>Age</div><div>Status</div><div>Action</div></div>`;
+                 appState.participants.forEach(p => {
+                      list += `<div class="assessment-row" onclick="viewReport('${p.id}')">
+                           <div>${p.id}</div>
+                           <div><strong>${p.name || 'N/A'}</strong></div>
+                           <div>${p.age || '--'}</div>
+                           <div><span class="status-pill ${p.status === 'completed' ? 'completed' : 'progress'}">${p.status}</span></div>
+                           <div><button class="button-secondary" style="padding: 5px">View</button></div>
+                      </div>`;
+                 });
+                 list += `</div>`;
+                 root.innerHTML += list;
+            }
+        }
+        
+        function renderReportsList(root) {
+             root.innerHTML = `<h2 class="form-section-title">${t('reports')}</h2>
+             <p>Generate summary reports for all completed assessments.</p>
+             <button class="button-primary" onclick="alert('Batch export prototype action')">Export All Data (CSV)</button>
+             `;
+        }
+        
+        function renderEducationList(root) {
+             root.innerHTML = `<h2 class="form-section-title">${t('education')} Library</h2>
+             <div class="video-grid" style="grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));">
+                  ${videos.map(v => `
+                       <div class="video-card" onclick="playVideo('${v.id}')">
+                            <div class="video-art"></div>
+                            <div class="video-copy">
+                                 <strong>${tt(v.title)}</strong>
+                                 <small>${tt(v.desc)}</small>
+                            </div>
+                       </div>
+                  `).join('')}
+             </div>
+             `;
+        }
+        
+        window.playVideo = function(id) {
+             const v = videos.find(x => x.id === id);
+             if(v) {
+                  $('#modalTitle').textContent = tt(v.title);
+                  $('#modalDesc').textContent = tt(v.desc) + " (Simulated Playback)";
+                  $('#videoModal').classList.add('show');
+             }
+        }
+
+        /**
+         * Export Engine (PDF & DOCX)
+         */
+        function prepareExportData(p, recommendationText) {
+             // Demographics
+             const demoTable = $('#export-demographics');
+             demoTable.innerHTML = '';
+             Object.keys(p.data.demographics).forEach(k => {
+                  const labelEn = questionnaire.demographics.find(x=>x.id===k)?.label.en || k;
+                  demoTable.innerHTML += `<tr><td width="40%"><b>${labelEn}</b></td><td>${p.data.demographics[k]}</td></tr>`;
+             });
+             
+             // Health
+             const clinicalTable = $('#export-clinical');
+             clinicalTable.innerHTML = '';
+             Object.keys(p.data.health).forEach(k => {
+                  const labelEn = questionnaire.health.find(x=>x.id===k)?.label.en || k;
+                  clinicalTable.innerHTML += `<tr><td width="40%"><b>${labelEn}</b></td><td>${p.data.health[k]}</td></tr>`;
+             });
+             
+             // Results
+             const resultsTable = $('#export-results');
+             resultsTable.innerHTML = '<tr><th>Complication</th><th>Score</th><th>Risk Level</th></tr>';
+             const rules = questionnaire.riskAssessment;
+             Object.keys(rules).forEach(key => {
+                  const score = p.data.risk[key] || 0;
+                  const rule = rules[key].scoring;
+                  let level = 'Low Risk';
+                  if (score >= rule.high[0]) level = 'High Risk';
+                  else if (score >= rule.moderate[0]) level = 'Moderate Risk';
+                  
+                  resultsTable.innerHTML += `<tr>
+                       <td>${t(key)}</td>
+                       <td>${score} / ${rule.max}</td>
+                       <td><b>${level}</b></td>
+                  </tr>`;
+             });
+             
+             $('#export-recommendations').textContent = recommendationText;
+        }
+
+        window.exportPDF = function() {
+             showToast("Generating PDF...");
+             const element = document.getElementById('report-export-container');
+             element.style.display = 'block'; // Temporarily show
+             
+             const opt = {
+                  margin:       10,
+                  filename:     `Diabetes_Risk_Report_${appState.currentParticipant.id}.pdf`,
+                  image:        { type: 'jpeg', quality: 0.98 },
+                  html2canvas:  { scale: 2 },
+                  jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+             };
+             
+             html2pdf().set(opt).from(element).save().then(() => {
+                  element.style.display = 'none'; // Hide again
+                  showToast("PDF Exported successfully");
+             });
+        }
+        
+        window.exportDOCX = function() {
+             showToast("Generating DOCX...");
+             
+             const p = appState.currentParticipant;
+             let content = `DIABETES RISK PREDICTION REPORT\n\nParticipant ID: ${p.id}\nDate: ${new Date(p.date).toLocaleString()}\n\n`;
+             content += `--- DEMOGRAPHICS ---\n`;
+             Object.keys(p.data.demographics).forEach(k => content += `${k}: ${p.data.demographics[k]}\n`);
+             content += `\n--- RISK SCORES ---\n`;
+             Object.keys(questionnaire.riskAssessment).forEach(key => {
+                  content += `${key.toUpperCase()}: Score ${p.data.risk[key]}\n`;
+             });
+             
+             const blob = new Blob([content], {type: "application/msword"});
+             saveAs(blob, `Diabetes_Risk_Report_${p.id}.doc`);
+             showToast("DOC Exported");
+        }
+
+        // Start
+        init();
     </script>
 </body>
-
 </html>
