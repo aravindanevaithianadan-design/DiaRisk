@@ -284,6 +284,80 @@ html.lang-ta .brand-lockup strong,html.lang-ta .hero-panel h1,html.lang-ta .asse
 body{overflow-x:hidden;-webkit-font-smoothing:antialiased}
 .question-card h2,.answer-button{overflow-wrap:anywhere}
 :focus-visible{outline:2px solid var(--teal);outline-offset:2px;border-radius:8px}
+
+/* ===== UX upgrade: live scoring + touch-first mobile ===== */
+.live-score-strip{display:flex;gap:14px;align-items:stretch;margin:0 0 18px;max-width:960px}
+.live-score-summary,.current-score{background:var(--surface);border:1px solid var(--line);border-radius:15px;padding:14px 16px;box-shadow:0 8px 24px rgba(24,47,64,.04)}
+.live-score-summary{flex:1;display:grid;grid-template-columns:auto auto 1fr auto;gap:10px;align-items:center}
+.live-pulse{font-size:10px;text-transform:uppercase;letter-spacing:.12em;font-weight:800;color:var(--teal);display:flex;gap:6px;align-items:center}
+.live-pulse span{width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 5px var(--teal-soft)}
+.live-score-summary>strong{font-size:20px}
+.live-score-summary>span{color:var(--muted);font-size:11px}
+.live-progress{height:8px;background:var(--surface-2);border-radius:9px;overflow:hidden}
+.live-progress i,.mini-track i,.score-bar i{display:block;height:100%;border-radius:inherit;background:var(--teal);transition:width .35s var(--ease)}
+.live-score-summary>b{font-size:11px;color:var(--teal)}
+.current-score{min-width:230px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:5px 12px}
+.current-score span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.current-score strong{font-size:21px}
+.current-score em{font-style:normal;font-size:10px;font-weight:800;text-transform:uppercase;grid-column:1/-1}
+.live-score-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:20px;max-width:960px}
+.live-score-card{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:11px 12px;transition:.2s}
+.live-score-card.active{border-color:var(--teal);box-shadow:0 0 0 2px var(--teal-soft)}
+.live-score-top{display:flex;justify-content:space-between;gap:10px;font-size:11px;font-weight:800}
+.live-score-top span{color:var(--ink-2)}
+.live-score-top b{font-size:11px}
+.mini-track{height:5px;background:var(--surface-2);border-radius:5px;overflow:hidden;margin:7px 0 5px}
+.live-score-card small{font-size:9.5px;color:var(--muted)}
+.progress-block{margin-top:20px}
+.progress-block .progress-meta{margin-bottom:7px}
+.progress-block .progress-meta strong{color:var(--teal)}
+.yesno-grid .answer-button{min-height:110px;display:grid;grid-template-columns:auto 1fr;align-content:center;gap:2px 12px}
+.yesno-grid .answer-index{font-size:24px;grid-row:1/3;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--surface-2);color:var(--ink-2)}
+.yesno-grid .answer-button small{font-size:10px;color:var(--muted);font-weight:600}
+.answer-button.selected.yes .answer-index{background:var(--teal);color:#fff}
+.answer-button.selected.no .answer-index{background:var(--coral);color:#fff}
+.result-actions{display:flex;gap:8px;flex-wrap:wrap}
+.result-hero{display:flex;justify-content:space-between;align-items:center;max-width:960px;padding:24px;border-radius:20px;border:1px solid var(--line);background:var(--surface);margin-bottom:16px;position:relative;overflow:hidden}
+.result-hero.high{background:linear-gradient(135deg,var(--surface),var(--coral-soft))}
+.result-hero.moderate{background:linear-gradient(135deg,var(--surface),var(--amber-soft))}
+.result-hero.low{background:linear-gradient(135deg,var(--surface),var(--teal-soft))}
+.result-main-score{font:400 38px "DM Serif Display",serif;margin:8px 0 2px}
+.result-hero p{margin:0;color:var(--ink-2);font-weight:700}
+.result-ring{width:100px;height:100px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--teal) var(--ring),var(--surface-2) 0);position:relative}
+.result-ring:after{content:"";position:absolute;inset:9px;background:var(--surface);border-radius:50%}
+.result-ring span{position:relative;z-index:1;font-size:12px;font-weight:800;text-transform:uppercase}
+.result-score-list{display:flex;flex-direction:column;gap:15px}
+.result-score-label{display:flex;justify-content:space-between;font-size:12px;font-weight:800}
+.result-score-row small{display:block;margin-top:4px;color:var(--muted);font-size:10px}
+.score-bar{height:7px;background:var(--surface-2);border-radius:8px;overflow:hidden;margin-top:6px}
+.score-bar i.high{background:var(--coral)} .score-bar i.moderate{background:var(--amber)} .score-bar i.low{background:var(--teal)}
+.live-score-mobile{display:none}
+@media(max-width:820px){
+  .live-score-strip{position:sticky;top:66px;z-index:8;margin:0 -18px 16px;padding:8px 18px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .live-score-summary{grid-template-columns:auto auto 1fr auto;padding:10px 12px;width:100%}
+  .current-score{display:none}
+  .live-score-grid{grid-template-columns:1fr 1fr}
+  .live-score-card{padding:10px}
+  .question-card{border-radius:16px}
+  .conversation-footer{gap:8px}
+  .continue-button{flex:1;min-width:0}
+  .back-button{min-width:78px}
+  .live-score-mobile{display:block;position:sticky;bottom:0;z-index:6;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-top:12px;box-shadow:0 -8px 24px rgba(0,0,0,.08)}
+  .live-mobile-head{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:800}
+  .live-mobile-head span{color:var(--teal)}
+  .result-hero{padding:20px}.result-ring{width:78px;height:78px}
+}
+@media(max-width:520px){
+  .live-score-summary{grid-template-columns:auto auto 1fr;gap:8px}
+  .live-score-summary>b{display:none}
+  .live-score-summary>span{display:none}
+  .live-score-grid{grid-template-columns:1fr 1fr;gap:7px}
+  .live-score-card small{font-size:8.5px}
+  .result-actions{width:100%}.result-actions button{flex:1}
+  .result-main-score{font-size:32px}
+  .result-ring{width:70px;height:70px}
+}
+
 </style>
 
 <script>
@@ -307,7 +381,7 @@ const translations = {
     low:'Low',moderate:'Moderate',high:'High',
     analysis:'Analysis',educationTitle:'Preventive education',finalReport:'Final report',
     required:'Please choose an answer before continuing.',saved:'Assessment saved locally.',soon:'Coming soon.',
-    notice:'This is a research prototype. Do not enter identifiable participant data.',
+    notice:'This is a research prototype. Do not enter identifiable participant data.',nextQuestion:'Next question',answered:'answered',of:'of',complete:'complete',liveNow:'Live now',current:'Current',chooseAnswer:'Choose one answer to continue.',symptomHint:'Answer based on symptoms you are experiencing now.',progress:'Progress',score:'Score',notScored:'Not scored yet',edit:'Edit',calculate:'Calculate results',
     liveScore:'Live section scores',overall:'Overall risk',worstSection:'Highest section risk',
     exportPdf:'Export PDF',exportDocx:'Export DOCX',export:'Export',
     settingsSaved:'Settings saved.',cleared:'All local data cleared.',
@@ -321,11 +395,11 @@ const translations = {
     section:'பகுதி',question:'கேள்வி',continue:'தொடரவும்',back:'பின்செல்லவும்',save:'சேமிக்கவும்',review:'மதிப்பாய்வு',assessment:'மதிப்பீடு',
     noData:'பதிவுகள் இல்லை',noDataSub:'புதிய மதிப்பீட்டைத் தொடங்குங்கள்.',
     disclaimer:'இது ஆய்வு முன்மாதிரி — மருத்துவ நோயறிதல் அல்ல.',
-    participant:'பங்கேற்பாளர்',demographics:'சான்றுகள்',clinical:'மருத்துவம்',neuropathy:'நரம்பு பாதிப்பு',retinopathy:'கண் பாதிப்பு',nephropathy:'சிறுநீரக பாதிப்பு',gastroparesis:'Gastroparesis',peripheral:'Peripheral vascular',stroke:'Stroke / cerebrovascular',cardiovascular:'Cardiovascular',perception:'செயலி கருத்து',
+    participant:'பங்கேற்பாளர்',demographics:'சமூக மற்றும் மக்கள் தொகை விவரங்கள்',clinical:'மருத்துவ தகவல்',neuropathy:'நரம்பு பாதிப்பு',retinopathy:'கண் பாதிப்பு',nephropathy:'சிறுநீரக பாதிப்பு',gastroparesis:'காஸ்ட்ரோபரேசிஸ்',peripheral:'புற இரத்த நாளச் சிக்கல்கள்',stroke:'பக்கவாதம் / மூளை இரத்த நாளச் சிக்கல்கள்',cardiovascular:'இதய இரத்த நாளச் சிக்கல்கள்',perception:'செயலி கருத்து',
     riskAssessment:'ஆபத்து மதிப்பீடு',recommendation:'பரிந்துரை',
     low:'குறைந்த',moderate:'மிதமான',high:'அதிக',
     analysis:'ஆய்வு',educationTitle:'தடுப்பு கல்வி',finalReport:'இறுதி அறிக்கை',
-    required:'பதிலைத் தேர்ந்தெடுக்கவும்.',saved:'மதிப்பீடு சேமிக்கப்பட்டது.',soon:'விரைவில்.',notice:'இது ஆய்வு முன்மாதிரி.',
+    required:'தொடர்வதற்கு ஒரு பதிலைத் தேர்ந்தெடுக்கவும்.',saved:'மதிப்பீடு சேமிக்கப்பட்டது.',soon:'விரைவில்.',notice:'இது ஆய்வு முன்மாதிரி.',nextQuestion:'அடுத்த கேள்வி',answered:'பதிலளிக்கப்பட்டது',of:'இல்',complete:'முடிந்தது',liveNow:'நேரடி மதிப்பெண்',current:'தற்போது',chooseAnswer:'தொடர ஒரு பதிலைத் தேர்ந்தெடுக்கவும்.',symptomHint:'தற்போது நீங்கள் அனுபவிக்கும் அறிகுறிகளின் அடிப்படையில் பதிலளிக்கவும்.',progress:'முன்னேற்றம்',score:'மதிப்பெண்',notScored:'இன்னும் மதிப்பிடப்படவில்லை',edit:'திருத்து',calculate:'முடிவுகளை கணக்கிடு',
     liveScore:'பகுதி மதிப்பெண்கள்',overall:'மொத்த ஆபத்து',worstSection:'உயர் ஆபத்து பகுதி',
     exportPdf:'PDF பதிவிறக்கம்',exportDocx:'DOCX பதிவிறக்கம்',export:'ஏற்றுமதி',
     settingsSaved:'அமைப்புகள் சேமிக்கப்பட்டன.',cleared:'உள்ளூர் தரவு நீக்கப்பட்டது.',
@@ -339,107 +413,52 @@ const translations = {
 const SECTIONS = [
   {
     key:'neuropathy', total:10,
+    label:'Diabetic Neuropathy', labelTa:'நரம்பு பாதிப்பு',
     bands:[[0,3,'low'],[4,6,'moderate'],[7,10,'high']],
-    interp:{low:'No significant neuropathy symptoms',moderate:'Possible early nerve damage',high:'High probability of diabetic neuropathy'},
-    questions:[
-      {en:'Do you experience pain in your legs or feet?',ta:'உங்கள் கால்களில் அல்லது பாதங்களில் வலி உள்ளதா?'},
-      {en:'Do you feel numbness in your feet?',ta:'உங்கள் பாதங்களில் உணர்வு குறைவு (Numbness) உள்ளதா?'},
-      {en:'Do you experience tingling or prickling sensation in your feet?',ta:'கால்களில் முள் குத்தும் போன்ற சுழல் உணர்வு (Tingling sensation) உள்ளதா?'},
-      {en:'Do you feel a burning sensation in your feet?',ta:'கால்களில் எரியும் உணர்வு (Burning sensation) ஏற்படுகிறதா?'},
-      {en:'Do you have loss of sensation in your feet?',ta:'கால்களில் உணர்வு இழப்பு (Loss of sensation) உள்ளதா?'},
-      {en:'Do you feel increased sensitivity to touch in your feet?',ta:'தொடும்போது அதிக உணர்வு (Increased sensitivity) ஏற்படுகிறதா?'},
-      {en:'Do you experience muscle weakness in your legs?',ta:'கால்களில் தசை பலவீனம் (Muscle weakness) உள்ளதா?'},
-      {en:'Do you have difficulty walking due to foot discomfort?',ta:'கால்களில் உள்ள பிரச்சினைகளால் நடக்க சிரமமா?'},
-      {en:'Do you experience sharp or stabbing pain in your feet?',ta:'கூர்மையான வலி (Sharp or stabbing pain) ஏற்படுகிறதா?'},
-      {en:'Do you notice reduced ability to feel temperature changes in your feet?',ta:'வெப்பநிலை மாற்றத்தை உணர சிரமமா?'}
-    ]
+    interp:{low:"No significant neuropathy symptoms",moderate:"Possible early nerve damage",high:"High probability of diabetic neuropathy"},
+    questions:[{en:"Do you experience pain in your legs or feet?",ta:"உங்கள் கால்களில் அல்லது பாதங்களில் வலி உள்ளதா?"},{en:"Do you feel numbness in your feet?",ta:"உங்கள் பாதங்களில் உணர்வு குறைவு (Numbness) உள்ளதா?"},{en:"Do you experience tingling or prickling sensation in your feet?",ta:"கால்களில் முள் குத்தும் போன்ற சுழல் உணர்வு (Tingling sensation) உள்ளதா?"},{en:"Do you feel a burning sensation in your feet?",ta:"கால்களில் எரியும் உணர்வு (Burning sensation) ஏற்படுகிறதா?"},{en:"Do you have loss of sensation in your feet?",ta:"கால்களில் உணர்வு இழப்பு (Loss of sensation) உள்ளதா?"},{en:"Do you feel increased sensitivity to touch in your feet?",ta:"தொடும்போது அதிக உணர்வு (Increased sensitivity) ஏற்படுகிறதா?"},{en:"Do you experience muscle weakness in your legs?",ta:"கால்களில் தசை பலவீனம் (Muscle weakness) உள்ளதா?"},{en:"Do you have difficulty walking due to foot discomfort?",ta:"கால்களில் உள்ள பிரச்சினைகளால் நடக்க சிரமமா?"},{en:"Do you experience sharp or stabbing pain in your feet?",ta:"கூர்மையான வலி (Sharp or stabbing pain) ஏற்படுகிறதா?"},{en:"Do you notice reduced ability to feel temperature changes in your feet?",ta:"வெப்பநிலை மாற்றத்தை உணர சிரமமா?"}]
   },
   {
     key:'retinopathy', total:10,
+    label:'Diabetic Retinopathy', labelTa:'கண் பாதிப்பு',
     bands:[[0,3,'low'],[4,6,'moderate'],[7,10,'high']],
-    interp:{low:'Low chance of retinal complications',moderate:'Possible early retinopathy',high:'High risk of diabetic retinopathy'},
-    questions:[
-      {en:'Do you experience blurred vision?',ta:'மங்கலான பார்வை (Blurred vision) உள்ளதா?'},
-      {en:'Do you have difficulty seeing clearly at night?',ta:'இரவில் தெளிவாக பார்க்க சிரமமா?'},
-      {en:'Do you see dark spots or floaters in your vision?',ta:'பார்வையில் கரும்புள்ளிகள் (Floaters) தெரிகிறதா?'},
-      {en:'Do you experience frequent changes in your vision?',ta:'பார்வையில் அடிக்கடி மாற்றம் ஏற்படுகிறதா?'},
-      {en:'Do you have difficulty reading small text?',ta:'சிறிய எழுத்துகளை வாசிக்க சிரமமா?'},
-      {en:'Do you notice distorted or wavy vision?',ta:'நேராக உள்ள பொருட்கள் வளைந்து காணப்படுகிறதா?'},
-      {en:'Do you feel eye strain or discomfort frequently?',ta:'கண்களில் வலி அல்லது சோர்வு ஏற்படுகிறதா?'},
-      {en:'Do you experience sudden loss of vision in one or both eyes?',ta:'திடீரென பார்வை குறைவு ஏற்பட்டதா?'},
-      {en:'Do you notice difficulty recognizing faces from a distance?',ta:'தூரத்தில் உள்ள முகங்களை அடையாளம் காண சிரமமா?'},
-      {en:'Do your eyes become sensitive to bright light?',ta:'பிரகாசமான வெளிச்சத்திற்கு கண்கள் மிகவும் உணர்வாக உள்ளதா?'}
-    ]
+    interp:{low:"Low chance of retinal complications",moderate:"Possible early retinopathy",high:"High risk of diabetic retinopathy"},
+    questions:[{en:"Do you experience blurred vision?",ta:"மங்கலான பார்வை (Blurred vision) உள்ளதா?"},{en:"Do you have difficulty seeing clearly at night?",ta:"இரவில் தெளிவாக பார்க்க சிரமமா?"},{en:"Do you see dark spots or floaters in your vision?",ta:"பார்வையில் கரும்புள்ளிகள் (Floaters) தெரிகிறதா?"},{en:"Do you experience frequent changes in your vision?",ta:"பார்வையில் அடிக்கடி மாற்றம் ஏற்படுகிறதா?"},{en:"Do you have difficulty reading small text?",ta:"சிறிய எழுத்துகளை வாசிக்க சிரமமா?"},{en:"Do you notice distorted or wavy vision?",ta:"நேராக உள்ள பொருட்கள் வளைந்து காணப்படுகிறதா?"},{en:"Do you feel eye strain or discomfort frequently?",ta:"கண்களில் வலி அல்லது சோர்வு ஏற்படுகிறதா?"},{en:"Do you experience sudden loss of vision in one or both eyes?",ta:"திடீரென பார்வை குறைவு ஏற்பட்டதா?"},{en:"Do you notice difficulty recognizing faces from a distance?",ta:"தூரத்தில் உள்ள முகங்களை அடையாளம் காண சிரமமா?"},{en:"Do your eyes become sensitive to bright light?",ta:"பிரகாசமான வெளிச்சத்திற்கு கண்கள் மிகவும் உணர்வாக உள்ளதா?"}]
   },
   {
     key:'nephropathy', total:10,
+    label:'Diabetic Nephropathy', labelTa:'சிறுநீரக பாதிப்பு',
     bands:[[0,3,'low'],[4,6,'moderate'],[7,10,'high']],
-    interp:{low:'Kidney function likely normal',moderate:'Possible early kidney damage',high:'High risk of diabetic nephropathy'},
-    questions:[
-      {en:'Do you have swelling in your feet or ankles?',ta:'உங்கள் கால்களில் அல்லது கணுக்கால்களில் வீக்கம் உள்ளதா?'},
-      {en:'Do you experience frequent urination at night?',ta:'இரவில் அடிக்கடி சிறுநீர் கழிக்க வேண்டிய நிலை உள்ளதா?'},
-      {en:'Do you notice foamy or bubbly urine?',ta:'நுரையுடன் கூடிய சிறுநீர் (Foamy urine) இருக்கிறதா?'},
-      {en:'Do you feel persistent fatigue or weakness?',ta:'அதிக சோர்வு அல்லது பலவீனம் உள்ளதா?'},
-      {en:'Do you experience loss of appetite?',ta:'உணவு விருப்பம் குறைந்துள்ளதா?'},
-      {en:'Do you have nausea or vomiting frequently?',ta:'அடிக்கடி வாந்தி அல்லது மயக்கம் ஏற்படுகிறதா?'},
-      {en:'Do you experience difficulty concentrating or feeling confused?',ta:'கவனம் செலுத்த சிரமம் உள்ளதா?'},
-      {en:'Do you notice dry and itchy skin?',ta:'தோல் உலர்வு மற்றும் அரிப்பு உள்ளதா?'},
-      {en:'Do you experience shortness of breath without physical exertion?',ta:'சுவாசிக்க சிரமம் உள்ளதா?'},
-      {en:'Do you notice reduced urine output?',ta:'சிறுநீர் வெளியேறும் அளவு குறைந்துள்ளதா?'}
-    ]
+    interp:{low:"Kidney function likely normal",moderate:"Possible early kidney damage",high:"High risk of diabetic nephropathy"},
+    questions:[{en:"Do you have swelling in your feet or ankles?",ta:"உங்கள் கால்களில் அல்லது கணுக்கால்களில் வீக்கம் உள்ளதா?"},{en:"Do you experience frequent urination at night?",ta:"இரவில் அடிக்கடி சிறுநீர் கழிக்க வேண்டிய நிலை உள்ளதா?"},{en:"Do you notice foamy or bubbly urine?",ta:"நுரையுடன் கூடிய சிறுநீர் (Foamy urine) இருக்கிறதா?"},{en:"Do you feel persistent fatigue or weakness?",ta:"அதிக சோர்வு அல்லது பலவீனம் உள்ளதா?"},{en:"Do you experience loss of appetite?",ta:"உணவு விருப்பம் குறைந்துள்ளதா?"},{en:"Do you have nausea or vomiting frequently?",ta:"அடிக்கடி வாந்தி அல்லது குமட்டல் ஏற்படுகிறதா?"},{en:"Do you experience difficulty concentrating or feeling confused?",ta:"கவனம் செலுத்த சிரமம் அல்லது குழப்பமாக உணர்கிறீர்களா?"},{en:"Do you notice dry and itchy skin?",ta:"தோல் உலர்வு மற்றும் அரிப்பு உள்ளதா?"},{en:"Do you experience shortness of breath without physical exertion?",ta:"உடல் உழைப்பு இல்லாமலேயே மூச்சுத்திணறல் ஏற்படுகிறதா?"},{en:"Do you notice reduced urine output?",ta:"சிறுநீர் வெளியேறும் அளவு குறைந்துள்ளதா?"}]
   },
   {
     key:'gastroparesis', total:8,
+    label:'Gastroparesis', labelTa:'காஸ்ட்ரோபரேசிஸ்',
     bands:[[0,3,'low'],[4,6,'moderate'],[7,8,'high']],
-    interp:{low:'Normal',moderate:'Possible early gastro issues',high:'High risk of gastroparesis'},
-    questions:[
-      {en:'Do you frequently feel full after eating a small amount of food?'},
-      {en:'Do you frequently experience bloating after meals?'},
-      {en:'Do you frequently experience nausea?'},
-      {en:'Have you vomited undigested food several hours after eating?'},
-      {en:'Do you frequently experience abdominal discomfort after eating?'},
-      {en:'Have you experienced unexplained weight loss?'},
-      {en:'Do your blood glucose levels become difficult to predict after meals?'},
-      {en:'Have you ever been diagnosed with gastroparesis?'}
-    ]
+    interp:{low:"Normal",moderate:"Possible early gastro issues",high:"High risk of gastroparesis"},
+    questions:[{en:"Do you frequently feel full after eating a small amount of food?",ta:"சிறிதளவு உணவு சாப்பிட்ட பிறகே அடிக்கடி வயிறு நிறைந்தது போன்ற உணர்வு ஏற்படுகிறதா?"},{en:"Do you frequently experience bloating after meals?",ta:"உணவு சாப்பிட்ட பிறகு அடிக்கடி வயிறு உப்புசமாக (வீக்கமாக) உணரப்படுகிறதா?"},{en:"Do you frequently experience nausea?",ta:"உங்களுக்கு அடிக்கடி குமட்டல் ஏற்படுகிறதா?"},{en:"Have you vomited undigested food several hours after eating?",ta:"உணவு சாப்பிட்டு பல மணி நேரங்களுக்குப் பிறகு செரிமானமாகாத உணவை வாந்தி எடுத்துள்ளீர்களா?"},{en:"Do you frequently experience abdominal discomfort after eating?",ta:"உணவு சாப்பிட்ட பிறகு அடிக்கடி வயிற்றில் அசௌகரியம் ஏற்படுகிறதா?"},{en:"Have you experienced unexplained weight loss?",ta:"காரணம் தெரியாமல் உடல் எடை குறைந்துள்ளதா?"},{en:"Do your blood glucose levels become difficult to predict after meals?",ta:"உணவு சாப்பிட்ட பிறகு உங்கள் இரத்தத்தில் உள்ள சர்க்கரையின் அளவு கணிக்க முடியாத அளவிற்கு மாறுபடுகிறதா?"},{en:"Have you ever been diagnosed with gastroparesis?",ta:"உங்களுக்கு இதற்கு முன்பு காஸ்ட்ரோபரேசிஸ் இருப்பதாக மருத்துவரால் கண்டறியப்பட்டுள்ளதா?"}]
   },
   {
     key:'peripheral', total:5,
+    label:'Peripheral Vascular', labelTa:'புற இரத்த நாளச் சிக்கல்கள்',
     bands:[[0,1,'low'],[2,3,'moderate'],[4,5,'high']],
-    interp:{low:'Normal',moderate:'Possible early peripheral vascular issues',high:'High risk of peripheral vascular disease'},
-    questions:[
-      {en:'Do you experience pain in your calf or thigh while walking that improves with rest?'},
-      {en:'Do your feet frequently feel cold?'},
-      {en:'Do wounds on your feet or legs take a long time to heal?'},
-      {en:'Have you noticed a change in the colour of your feet or toes?'},
-      {en:'Have you ever been diagnosed with poor circulation in your legs?'}
-    ]
+    interp:{low:"Normal",moderate:"Possible early peripheral vascular issues",high:"High risk of peripheral vascular disease"},
+    questions:[{en:"Do you experience pain in your calf or thigh while walking that improves with rest?",ta:"நடக்கும்போது உங்கள் கெண்டைக்கால் அல்லது தொடையில் வலி ஏற்பட்டு, ஓய்வெடுத்த பிறகு அந்த வலி குறைகிறதா?"},{en:"Do your feet frequently feel cold?",ta:"உங்கள் பாதங்கள் அடிக்கடி குளிர்ச்சியாக உணரப்படுகிறதா?"},{en:"Do wounds on your feet or legs take a long time to heal?",ta:"உங்கள் பாதங்கள் அல்லது கால்களில் ஏற்படும் காயங்கள் குணமடைய அதிக நாட்கள் ஆகிறதா?"},{en:"Have you noticed a change in the colour of your feet or toes?",ta:"உங்கள் பாதங்கள் அல்லது கால் விரல்களின் நிறத்தில் மாற்றம் ஏற்பட்டுள்ளதை கவனித்துள்ளீர்களா?"},{en:"Have you ever been diagnosed with poor circulation in your legs?",ta:"உங்கள் கால்களில் இரத்த ஓட்டம் குறைவாக இருப்பதாக மருத்துவரால் எப்போதாவது கண்டறியப்பட்டுள்ளதா?"}]
   },
   {
     key:'stroke', total:6,
+    label:'Stroke / Cerebrovascular', labelTa:'பக்கவாதம் / மூளை இரத்த நாளச் சிக்கல்கள்',
     bands:[[0,2,'low'],[3,4,'moderate'],[5,6,'high']],
-    interp:{low:'Normal',moderate:'Possible early cerebrovascular issues',high:'High risk of cerebrovascular disease'},
-    questions:[
-      {en:'Have you experienced sudden weakness or numbness on one side of your body?'},
-      {en:'Have you experienced sudden difficulty in speaking or understanding speech?'},
-      {en:'Have you experienced sudden difficulty in walking or maintaining balance?'},
-      {en:'Have you experienced sudden difficulty in seeing with one or both eyes?'},
-      {en:'Have you experienced sudden severe headache without a known cause?'},
-      {en:'Have you ever been diagnosed with a stroke or cerebrovascular disease?'}
-    ]
+    interp:{low:"Normal",moderate:"Possible early cerebrovascular issues",high:"High risk of cerebrovascular disease"},
+    questions:[{en:"Have you experienced sudden weakness or numbness on one side of your body?",ta:"உங்கள் உடலின் ஒரு பக்கத்தில் திடீரென பலவீனம் அல்லது உணர்வின்மை ஏற்பட்டுள்ளதா?"},{en:"Have you experienced sudden difficulty in speaking or understanding speech?",ta:"திடீரென பேசுவதில் அல்லது மற்றவர்கள் பேசுவதைப் புரிந்துகொள்வதில் சிரமம் ஏற்பட்டுள்ளதா?"},{en:"Have you experienced sudden difficulty in walking or maintaining balance?",ta:"திடீரென நடப்பதில் அல்லது உடல் சமநிலையைப் பேணுவதில் சிரமம் ஏற்பட்டுள்ளதா?"},{en:"Have you experienced sudden difficulty in seeing with one or both eyes?",ta:"ஒன்று அல்லது இரண்டு கண்களிலும் திடீரென பார்வையில் சிரமம் ஏற்பட்டுள்ளதா?"},{en:"Have you experienced sudden severe headache without a known cause?",ta:"காரணம் எதுவும் தெரியாமல் திடீரென கடுமையான தலைவலி ஏற்பட்டுள்ளதா?"},{en:"Have you ever been diagnosed with a stroke or cerebrovascular disease?",ta:"உங்களுக்கு இதற்கு முன்பு பக்கவாதம் அல்லது மூளை இரத்த நாள நோய் இருப்பதாக மருத்துவரால் கண்டறியப்பட்டுள்ளதா?"}]
   },
   {
     key:'cardiovascular', total:6,
+    label:'Cardiovascular', labelTa:'இதய இரத்த நாளச் சிக்கல்கள்',
     bands:[[0,2,'low'],[3,4,'moderate'],[5,6,'high']],
-    interp:{low:'Normal',moderate:'Possible early cardiovascular issues',high:'High risk of cardiovascular disease'},
-    questions:[
-      {en:'Do you experience chest pain or pressure during activity?'},
-      {en:'Do you experience shortness of breath during routine activities?'},
-      {en:'Do you have high cholesterol?'},
-      {en:'Do you experience unusual palpitations or an irregular heartbeat?'},
-      {en:'Have you ever been diagnosed with heart disease or a heart-related condition?'},
-      {en:'Do you experience swelling in your feet or ankles?'}
-    ]
+    interp:{low:"Normal",moderate:"Possible early cardiovascular issues",high:"High risk of cardiovascular disease"},
+    questions:[{en:"Do you experience chest pain or pressure during activity?",ta:"உடல் செயல்பாடுகள் அல்லது வேலைகளைச் செய்யும்போது உங்கள் மார்பில் வலி அல்லது அழுத்தம் ஏற்படுகிறதா?"},{en:"Do you experience shortness of breath during routine activities?",ta:"வழக்கமான அன்றாட செயல்பாடுகளைச் செய்யும்போது மூச்சுத்திணறல் ஏற்படுகிறதா?"},{en:"Do you have high cholesterol?",ta:"உங்கள் இரத்தத்தில் கொழுப்புச்சத்து (கொலஸ்ட்ரால்) அதிகமாக உள்ளதா?"},{en:"Do you experience unusual palpitations or an irregular heartbeat?",ta:"வழக்கத்திற்குமாறாக இதயத் துடிப்பு வேகமாகவோ அல்லது சீரற்றதாகவோ இருப்பதை உணர்கிறீர்களா?"},{en:"Have you ever been diagnosed with heart disease or a heart-related condition?",ta:"உங்களுக்கு இதய நோய் அல்லது இதயம் தொடர்பான ஏதேனும் நோய் இருப்பதாக மருத்துவரால் எப்போதாவது கண்டறியப்பட்டுள்ளதா?"},{en:"Do you experience swelling in your feet or ankles?",ta:"உங்கள் பாதங்கள் அல்லது கணுக்கால்களில் வீக்கம் ஏற்படுகிறதா?"}]
   }
 ];
 
@@ -447,38 +466,39 @@ const SECTIONS = [
 // DEMOGRAPHICS + PERCEPTION
 // ============================================================
 const demographicsQuestions = [
-  {id:'participantNumber',label:'Participant number',type:'text',placeholder:'e.g. P-025'},
-  {id:'age',label:'Age (years)',type:'number',placeholder:'Enter age'},
-  {id:'sex',label:'Sex',type:'choice',options:['Male','Female','Other']},
-  {id:'education',label:'Highest education',type:'choice',options:['Illiterate','Primary','High school','Higher secondary','Graduate']},
-  {id:'occupation',label:'Occupation',type:'text',placeholder:'Enter occupation'},
-  {id:'income',label:'Monthly family income',type:'choice',options:['≤ ₹6,999','₹7,000–10,999','₹11,000–18,999','₹19,000–28,999','₹29,000–38,999','₹39,000–77,999','≥ ₹78,000']},
-  {id:'marital',label:'Marital status',type:'choice',options:['Single','Married','Separated','Divorced','Widowed']},
-  {id:'area',label:'Area',type:'choice',options:['Rural','Urban']},
-  {id:'duration',label:'Duration of diabetes',type:'choice',options:['Less than 1 year','1–10 years','11–20 years','More than 20 years']},
-  {id:'checkup',label:'Health checkup frequency',type:'choice',options:['Once a month','Once every 6 months','More than a year','Never']},
-  {id:'medication',label:'Medication adherence',type:'choice',options:['Regular','Irregular']},
-  {id:'activity',label:'Regular physical activity',type:'choice',options:['Yes','No']}
+  {id:"participantNumber",label:"Participant number",labelTa:"பங்கேற்பாளர் எண்",type:'text',placeholder:"e.g. P-025",placeholderTa:"எ.கா. P-025"},
+  {id:"age",label:"Age (years)",labelTa:"வயது (ஆண்டுகளில்)",type:'number',placeholder:"Enter age",placeholderTa:"வயதை உள்ளிடவும்"},
+  {id:"sex",label:"Sex",labelTa:"பாலினம்",type:'choice',options:["Male", "Female"],optionsTa:["ஆண்", "பெண்"]},
+  {id:"education",label:"Highest education",labelTa:"கல்வித் தகுதி",type:'choice',options:["Illiterate", "Primary", "High school", "Higher secondary", "Graduate"],optionsTa:["கல்வியறிவு இல்லை", "ஆரம்பக் கல்வி", "உயர்நிலைப் பள்ளி", "மேல்நிலைப் பள்ளி", "பட்டப்படிப்பு"]},
+  {id:"occupation",label:"Occupation",labelTa:"தொழில்",type:'text',placeholder:"Enter occupation",placeholderTa:"தொழிலை உள்ளிடவும்"},
+  {id:"income",label:"Monthly family income",labelTa:"மாதாந்திர குடும்ப வருமானம்",type:'choice',options:["≤ ₹6,999", "₹7,000–10,999", "₹11,000–18,999", "₹19,000–28,999", "₹29,000–38,999", "₹39,000–77,999", "≥ ₹78,000"],optionsTa:["₹6,999 அல்லது அதற்குக் குறைவு", "₹7,000–10,999", "₹11,000–18,999", "₹19,000–28,999", "₹29,000–38,999", "₹39,000–77,999", "₹78,000 அல்லது அதற்கு மேல்"]},
+  {id:"marital",label:"Marital status",labelTa:"திருமணநிலை",type:'choice',options:["Single", "Married", "Separated", "Divorced"],optionsTa:["திருமணம் ஆகாதவர்", "திருமணமானவர்", "பிரிந்தவர்", "விவாகரத்து பெற்றவர்"]},
+  {id:"area",label:"Area",labelTa:"வசிக்கும் பகுதி",type:'choice',options:["Rural", "Urban"],optionsTa:["கிராமப்புறம்", "நகர்ப்புறம்"]},
+  {id:"duration",label:"Duration of diabetes",labelTa:"நீரிழிவு நோயின் கால அளவு",type:'choice',options:["Less than 1 year", "1–10 years", "11–20 years", "More than 20 years"],optionsTa:["1 ஆண்டிற்கு குறைவு", "1–10 ஆண்டுகள்", "11–20 ஆண்டுகள்", "20 ஆண்டுகளுக்கு மேல்"]},
+  {id:"checkup",label:"Health checkup frequency",labelTa:"சுகாதார பரிசோதனை இடைவெளி",type:'choice',options:["Once a month", "Once every 6 months", "More than a year", "Never"],optionsTa:["மாதத்திற்கு ஒருமுறை", "6 மாதத்திற்கு ஒருமுறை", "ஆண்டிற்கு ஒருமுறை அல்லது அதற்கு மேல்", "ஒருபோதும் இல்லை"]},
+  {id:"medication",label:"Medication adherence",labelTa:"மருந்து எடுத்துக்கொள்ளும் ஒழுங்கு",type:'choice',options:["Regular", "Irregular"],optionsTa:["ஒழுங்காக", "ஒழுங்காக இல்லை"]},
+  {id:"activity",label:"Regular physical activity",labelTa:"தொடர்ச்சியான உடற்பயிற்சி",type:'choice',options:["Yes", "No"],optionsTa:["ஆம்", "இல்லை"]}
 ];
 
 const perceptionLikert = [
-  {id:'p_easy',label:'This app was easy to use.'},
-  {id:'p_clear',label:'The questions in the app were clearly understood.'},
-  {id:'p_aware',label:'This app made me aware of diabetes complications.'},
-  {id:'p_useful',label:'The information provided in the app was useful.'},
-  {id:'p_risk',label:'This app helped me understand my health risk.'},
-  {id:'p_prevent',label:'The preventive strategies provided in the app were useful.'},
-  {id:'p_video',label:'The educational video shown in the app was easy to understand.'},
-  {id:'p_confidence',label:'After using this app, my confidence in preventing diabetes complications increased.'},
-  {id:'p_beneficial',label:'It would be beneficial for diabetes patients to use this app.'}
+  {id:"p_easy",label:"This app was easy to use.",labelTa:"இந்த செயலியை பயன்படுத்துவது எளிதாக இருந்தது."},
+  {id:"p_clear",label:"The questions in the app were clearly understood.",labelTa:"செயலியில் உள்ள கேள்விகள் தெளிவாக புரிந்தன."},
+  {id:"p_aware",label:"This app made me aware of diabetes complications.",labelTa:"இந்த செயலி நீரிழிவு நோய் சிக்கல்கள் பற்றி எனக்கு விழிப்புணர்வு அளித்தது."},
+  {id:"p_useful",label:"The information provided in the app was useful.",labelTa:"செயலியில் வழங்கப்பட்ட தகவல்கள் பயனுள்ளதாக இருந்தன."},
+  {id:"p_risk",label:"This app helped me understand my health risk.",labelTa:"இந்த செயலி எனது உடல்நிலை அபாயத்தை புரிந்து கொள்ள உதவியது."},
+  {id:"p_prevent",label:"The preventive strategies provided in the app were useful.",labelTa:"செயலியில் வழங்கப்பட்ட தடுப்பு வழிமுறைகள் பயனுள்ளதாக இருந்தன."},
+  {id:"p_video",label:"The educational video shown in the app was easy to understand.",labelTa:"செயலியில் காண்பிக்கப்பட்ட கல்வி வீடியோ புரிந்துகொள்ள எளிதாக இருந்தது."},
+  {id:"p_confidence",label:"After using this app, my confidence in preventing diabetes complications increased.",labelTa:"இந்த செயலியை பயன்படுத்திய பிறகு நீரிழிவு சிக்கல்களை தடுப்பதில் எனது நம்பிக்கை அதிகரித்தது."},
+  {id:"p_beneficial",label:"It would be beneficial for diabetes patients to use this app.",labelTa:"நீரிழிவு நோயாளிகள் இந்த செயலியை பயன்படுத்துவது பயனுள்ளதாக இருக்கும்."}
 ];
 const likertOptions = ['Strongly agree','Agree','Not sure','Disagree','Strongly disagree'];
+const likertOptionsTa = ['முற்றிலும் ஒப்புக்கொள்கிறேன்','ஒப்புக்கொள்கிறேன்','உறுதியாக தெரியவில்லை','ஒப்புக்கொள்ளவில்லை','முற்றிலும் ஒப்புக்கொள்ளவில்லை'];
 
 const perceptionExtras = [
-  {id:'p_frequency',label:'How often do you use the app?',type:'choice',options:['Daily','Weekly','Monthly','Rarely']},
-  {id:'p_session',label:'Average time spent per session?',type:'choice',options:['<5 min','5–15 min','15–30 min','>30 min']},
-  {id:'p_recommend',label:'Would you recommend this app to others?',type:'choice',options:['Yes','No']},
-  {id:'p_suggestions',label:'Suggestions for improvement?',type:'textarea',placeholder:'Optional feedback',optional:true}
+  {id:'p_frequency',label:'How often do you use the app?',labelTa:'இந்த செயலியை எவ்வளவு அடிக்கடி பயன்படுத்துகிறீர்கள்?',type:'choice',options:['Daily','Weekly','Monthly','Rarely'],optionsTa:['தினமும்','வாரந்தோறும்','மாதந்தோறும்','அரிதாக']},
+  {id:'p_session',label:'Average time spent per session?',labelTa:'ஒரு முறை பயன்படுத்தும் சராசரி நேரம்?',type:'choice',options:['<5 min','5–15 min','15–30 min','>30 min'],optionsTa:['5 நிமிடங்களுக்கும் குறைவு','5–15 நிமிடங்கள்','15–30 நிமிடங்கள்','30 நிமிடங்களுக்கு மேல்']},
+  {id:'p_recommend',label:'Would you recommend this app to others?',labelTa:'இந்த செயலியை மற்றவர்களுக்கு பரிந்துரைப்பீர்களா?',type:'choice',options:['Yes','No'],optionsTa:['ஆம்','இல்லை']},
+  {id:'p_suggestions',label:'Suggestions for improvement?',labelTa:'மேம்படுத்துவதற்கான பரிந்துரைகள்?',type:'textarea',placeholder:'Optional feedback',placeholderTa:'விருப்பமிருந்தால் கருத்தை எழுதவும்',optional:true}
 ];
 
 // ============================================================
@@ -567,6 +587,22 @@ function totalQuestionsPerAssessment(){
 // ============================================================
 function t(k){ return translations[state.settings.language][k] || translations.en[k] || k; }
 function esc(v=''){ return String(v).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c])); }
+function displayStored(q,v){
+  if(v==null || v==='') return '—';
+  if(state.settings.language==='ta' && q.options){
+    const idx=(q.canonicalOptions||q.options).indexOf(v);
+    if(q.optionsTa && idx>=0) return q.optionsTa[idx];
+  }
+  return v;
+}
+function localizedLabel(q){
+  if(!q) return '';
+  return state.settings.language==='ta' && q.labelTa ? q.labelTa : (q.label || q.en || '');
+}
+function localizedOption(q, option, index){
+  if(state.settings.language==='ta' && q.optionsTa && q.optionsTa[index]) return q.optionsTa[index];
+  return option;
+}
 function questionText(q){
   if(state.settings.language==='ta' && q.ta) return q.ta;
   return q.en || q.label || '';
@@ -631,7 +667,7 @@ function stepQuestion(s){
     const sec = SECTIONS.find(x=>x.key===s.section);
     return {...sec.questions[s.index], _kind:'symptom', _section:sec.key, _index:s.index, type:'yesno'};
   }
-  if(s.kind==='likert') return {...perceptionLikert[s.index], _kind:'likert', type:'choice', options:likertOptions};
+  if(s.kind==='likert') return {...perceptionLikert[s.index], _kind:'likert', type:'choice', options:state.settings.language==='ta'?likertOptionsTa:likertOptions, canonicalOptions:likertOptions};
   if(s.kind==='perceptionExtra') return {...perceptionExtras[s.index], _kind:'perceptionExtra'};
 }
 function getCurrentValue(){
@@ -646,7 +682,14 @@ function setCurrentValue(v){
   if(!state.assessment) return;
   if(s.kind==='demo') state.assessment.demographics[q.id]=v;
   else if(s.kind==='symptom') state.assessment[s.section][s.index] = (v==='Yes'?true:(v==='No'?false:v));
-  else state.assessment.perception[q.id]=v;
+  else {
+    // Store canonical English values so language switching never corrupts existing answers.
+    if((s.kind==='likert' || s.kind==='perceptionExtra') && q.options){
+      const idx=q.options.indexOf(v);
+      const canonical=(q.canonicalOptions||q.options)[idx];
+      state.assessment.perception[q.id]=canonical ?? v;
+    } else state.assessment.perception[q.id]=v;
+  }
   if(state.settings.autosave) localStorage.setItem('assessment.draft', JSON.stringify(state.assessment));
 }
 function sectionLabelForStep(s){
@@ -668,6 +711,7 @@ function applyLanguage(){
   $('#languageToggle').innerHTML = state.settings.language==='en'
     ? '<b>EN</b><span>/</span><span>தமிழ்</span>'
     : '<span>EN</span><span>/</span><b>தமிழ்</b>';
+  $('#mobileContextFab').setAttribute('aria-label', t('liveScore'));
   $$('.nav-item [data-i18n]').forEach(el=>{
     const k=el.getAttribute('data-i18n'); el.textContent = t(k);
   });
@@ -763,46 +807,88 @@ function assessmentView(){
   const q = stepQuestion(step);
   const val = getCurrentValue();
   const total = stepMap.length;
-  const progress = Math.round((state.step / total) * 100);
-  const chips = renderChips();
+  const answered = stepMap.filter((_,i)=>{
+    const s=stepMap[i], qq=stepQuestion(s);
+    if(s.kind==='demo') return state.assessment.demographics[qq.id]!=null && state.assessment.demographics[qq.id]!=='';
+    if(s.kind==='symptom') return state.assessment[s.section][s.index]===true || state.assessment[s.section][s.index]===false;
+    return state.assessment.perception[qq.id]!=null && state.assessment.perception[qq.id]!=='';
+  }).length;
+  const progress = Math.round((answered / total) * 100);
   const isYesno = q._kind==='symptom';
   const isChoice = q.type==='choice';
   const isTextarea = q.type==='textarea';
-  const label = q._kind==='symptom' ? questionText(q) : (state.settings.language==='ta' && q.labelTa ? q.labelTa : q.label);
-  const placeholder = q.placeholder||'';
+  const label = isYesno ? questionText(q) : localizedLabel(q);
+  const placeholder = state.settings.language==='ta' && q.placeholderTa ? q.placeholderTa : (q.placeholder||'');
+  const canonicalValue = val;
+  const currentSection = q._kind==='symptom' ? SECTIONS.find(s=>s.key===q._section) : null;
+  const currentScore = currentSection ? sectionScore(state.assessment,currentSection.key) : null;
+  const currentAnswered = currentSection ? sectionAnsweredCount(state.assessment,currentSection.key) : 0;
+  const currentRisk = currentSection && currentAnswered ? riskFor(currentSection,currentScore) : null;
+  const scoreCards = SECTIONS.map(s=>{
+    const sc=sectionScore(state.assessment,s.key), ans=sectionAnsweredCount(state.assessment,s.key);
+    const pct=Math.round((sc/s.total)*100);
+    const lvl=ans ? riskFor(s,sc) : null;
+    return `<div class="live-score-card ${q._section===s.key?'active':''}">
+      <div class="live-score-top"><span>${esc(t(s.key))}</span><b class="${lvl?'risk-'+lvl:''}">${ans?`${sc}/${s.total}`:'—'}</b></div>
+      <div class="mini-track"><i style="width:${pct}%"></i></div>
+      <small>${ans?`${ans}/${s.total} ${t('answered')}${lvl?' · '+t(lvl):''}`:t('notScored')}</small>
+    </div>`;
+  }).join('');
   return `<div class="assessment-head">
-    <div class="assessment-title"><span class="eyebrow">${sectionLabelForStep(step)}</span><h1>${t('riskAssessment')}</h1><p>One clear prompt at a time. Answers remain editable.</p></div>
-    <div class="step-count"><strong data-testid="step-count">${Math.min(state.step+1,total)}</strong><small>of ${total}</small></div>
+    <div class="assessment-title"><span class="eyebrow">${sectionLabelForStep(step)}</span><h1>${t('riskAssessment')}</h1><p>${isYesno?t('symptomHint'):'One clear prompt at a time. You can edit answers before submitting.'}</p></div>
+    <div class="step-count"><strong>${Math.min(state.step+1,total)}</strong><small>${t('of')} ${total}</small></div>
   </div>
-  <div class="section-chips">${chips}</div>
+
+  <div class="live-score-strip">
+    <div class="live-score-summary">
+      <div class="live-pulse"><span></span>${t('liveNow')}</div>
+      <strong>${answered}/${total}</strong><span>${t('answered')}</span>
+      <div class="live-progress"><i style="width:${progress}%"></i></div>
+      <b>${progress}%</b>
+    </div>
+    ${currentSection ? `<div class="current-score">
+      <span>${esc(t(currentSection.key))} · ${t('score')}</span>
+      <strong>${currentScore}/${currentSection.total}</strong>
+      ${currentRisk?`<em class="risk-${currentRisk}">${esc(t(currentRisk))}</em>`:''}
+    </div>`:''}
+  </div>
+
+  <div class="section-chips">${renderChips()}</div>
   <div class="conversation">
-    <div class="system-note"><span class="system-orb">✦</span><span>${isYesno?'Symptom screening — select Yes or No.':(q._kind==='likert'?'Please indicate agreement with the statement.':'Enter or select the appropriate response.')}</span></div>
+    <div class="system-note"><span class="system-orb">✦</span><span>${isYesno?t('symptomHint'):(q._kind==='likert'?'Please indicate how strongly you agree.':'Choose or enter the most appropriate response.')}</span></div>
     <article class="question-card" data-testid="question-card">
       <div class="question-label">${t('question')} ${state.step+1} · ${sectionLabelForStep(step)}</div>
       <h2>${esc(label)}</h2>
       ${
-        isYesno ? `<div class="answer-grid">
-          <button type="button" class="answer-button ${val===true?'selected':''}" data-answer="Yes" data-testid="answer-yes"><span class="answer-index">1</span>${state.settings.language==='ta'?'ஆம் · Yes':'Yes'}</button>
-          <button type="button" class="answer-button ${val===false?'selected':''}" data-answer="No" data-testid="answer-no"><span class="answer-index">2</span>${state.settings.language==='ta'?'இல்லை · No':'No'}</button>
+        isYesno ? `<div class="answer-grid yesno-grid">
+          <button type="button" class="answer-button yes ${val===true?'selected':''}" data-answer="Yes" data-testid="answer-yes"><span class="answer-index">✓</span><span>${state.settings.language==='ta'?'ஆம்':'Yes'}</span><small>${state.settings.language==='ta'?'இந்த அறிகுறி உள்ளது':'Symptom present'}</small></button>
+          <button type="button" class="answer-button no ${val===false?'selected':''}" data-answer="No" data-testid="answer-no"><span class="answer-index">×</span><span>${state.settings.language==='ta'?'இல்லை':'No'}</span><small>${state.settings.language==='ta'?'இந்த அறிகுறி இல்லை':'Symptom not present'}</small></button>
         </div>` :
         isChoice ? `<div class="answer-grid ${q.options.length>2?'':'single'}">${
-          q.options.map((o,i)=>`<button type="button" class="answer-button ${String(val)===String(o)?'selected':''}" data-answer="${esc(o)}" data-testid="answer-${i}"><span class="answer-index">${i+1}</span>${esc(o)}</button>`).join('')
+          q.options.map((o,i)=>`<button type="button" class="answer-button ${String(canonicalValue)===String((q.canonicalOptions||q.options)[i])?'selected':''}" data-answer="${esc((q.canonicalOptions||q.options)[i])}" data-testid="answer-${i}"><span class="answer-index">${i+1}</span><span>${esc(localizedOption(q,o,i))}</span></button>`).join('')
         }</div>` :
         isTextarea ? `<textarea class="textarea-input" id="currentInput" placeholder="${esc(placeholder)}" data-testid="text-input">${esc(val||'')}</textarea>` :
         `<input class="text-input" id="currentInput" type="${q.type==='number'?'number':'text'}" value="${esc(val||'')}" placeholder="${esc(placeholder)}" data-testid="text-input" autofocus>`
       }
       <div class="conversation-footer">
-        <button type="button" class="back-button" data-action="back" data-testid="back-btn">← ${t('back')}</button>
-        <button type="button" class="continue-button ${val!=null&&val!==''?'ready':''}" data-action="continue" data-testid="continue-btn" ${(val==null||val==='')&&!q.optional?'disabled':''}>${state.step===total-1?t('review'):t('continue')} →</button>
+        <button type="button" class="back-button" data-action="back">← ${t('back')}</button>
+        <button type="button" class="continue-button ${val!=null&&val!==''?'ready':''}" data-action="continue" ${(val==null||val==='')&&!q.optional?'disabled':''}>${state.step===total-1?t('review'):t('nextQuestion')} →</button>
       </div>
     </article>
-    <div style="margin-top:20px">
+    <div class="progress-block">
+      <div class="progress-meta"><span>${t('progress')}</span><strong>${progress}%</strong></div>
       <div class="progress-track"><div class="progress-bar" style="width:${progress}%"></div></div>
-      <div class="progress-meta"><span>${sectionLabelForStep(step)}</span><span>${progress}% complete</span></div>
     </div>
+  </div>
+
+  <div class="live-score-mobile">
+    <div class="live-mobile-head"><span>● ${t('liveNow')}</span><strong>${currentSection?`${t(currentSection.key)} ${currentScore}/${currentSection.total}`:`${answered}/${total}`}</strong></div>
+    <div class="mini-track"><i style="width:${currentSection?Math.round(currentScore/currentSection.total*100):progress}%"></i></div>
+  </div>
+
+  <div class="live-score-grid">${scoreCards}</div>
   </div>`;
 }
-
 function renderChips(){
   const sections = ['demographics', ...SECTIONS.map(s=>s.key), 'perception'];
   const current = currentStep().section;
@@ -831,59 +917,66 @@ function sectionCompleted(key){
 function reviewView(){
   const a = state.assessment; if(!a){ return emptyBlock(t('noData'),t('noDataSub')); }
   const d = a.demographics;
-  const demo = demographicsQuestions.map(q=>[q.label, d[q.id]]);
-  const scores = SECTIONS.map(s=>{ const sc=sectionScore(a,s.key); return [t(s.key), `${sc}/${s.total} · ${riskFor(s,sc).toUpperCase()}`]; });
+  const demo = demographicsQuestions.map(q=>[localizedLabel(q), displayStored(q,d[q.id])]);
+  const scores = SECTIONS.map(s=>{ const sc=sectionScore(a,s.key), ans=sectionAnsweredCount(a,s.key); return [t(s.key), ans?`${sc}/${s.total} · ${t(riskFor(s,sc))}`:`— · ${t('notScored')}`]; });
   const overall = overallRiskFor(a);
   return `<div class="assessment-head">
-    <div class="assessment-title"><span class="eyebrow">${t('review')}</span><h1>${t('riskAssessment')}</h1><p>Review before saving. You can go back to edit any answer.</p></div>
-    <button class="button-primary" data-action="results" data-testid="calc-results-btn">Calculate results →</button>
+    <div class="assessment-title"><span class="eyebrow">${t('review')}</span><h1>${t('riskAssessment')}</h1><p>${state.settings.language==='ta'?'சேமிப்பதற்கு முன் உங்கள் பதில்களை சரிபார்க்கவும்.':'Review your answers before saving. You can go back and edit any response.'}</p></div>
+    <button class="button-primary" data-action="results">${t('calculate')} →</button>
   </div>
   <div class="review-grid">
     <article class="panel-card"><h3>${t('demographics')}</h3>${demo.map(x=>`<div class="review-item"><span>${esc(x[0])}</span><strong>${esc(x[1]||'—')}</strong></div>`).join('')}</article>
-    <article class="panel-card"><h3>Section scores</h3>${scores.map(x=>`<div class="review-item"><span>${esc(x[0])}</span><strong>${esc(x[1])}</strong></div>`).join('')}<div class="review-item"><span>${t('overall')}</span><strong class="risk-${overall.level}">${overall.level.toUpperCase()}${overall.key?` · ${overall.key}`:''}</strong></div></article>
+    <article class="panel-card"><h3>${t('liveScore')}</h3>${scores.map(x=>`<div class="review-item"><span>${esc(x[0])}</span><strong>${esc(x[1])}</strong></div>`).join('')}<div class="review-item"><span>${t('overall')}</span><strong class="${overall.level?'risk-'+overall.level:''}">${overall.key?`${t(overall.level)} · ${esc(t(overall.key))}`:t('notScored')}</strong></div></article>
   </div>
   <div class="notice" style="margin-top:18px">${t('disclaimer')}</div>`;
 }
-
-// -------- Results
 function resultsView(){
   const a = state.assessment; if(!a){ return emptyBlock(t('noData'),t('noDataSub')); }
   const overall = overallRiskFor(a);
   return `<div class="assessment-head">
-    <div class="assessment-title"><span class="eyebrow">${t('analysis')}</span><h1>Screening picture</h1><p>Scores are indicative, not diagnostic.</p></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="button-secondary" data-action="export-pdf-current" data-testid="export-pdf-btn">↓ ${t('exportPdf')}</button>
-      <button class="button-secondary" data-action="export-docx-current" data-testid="export-docx-btn">↓ ${t('exportDocx')}</button>
-      <button class="button-primary" data-action="save" data-testid="save-assessment-btn">${t('save')}</button>
+    <div class="assessment-title"><span class="eyebrow">${t('analysis')}</span><h1>${state.settings.language==='ta'?'மதிப்பீட்டு முடிவுகள்':'Your screening results'}</h1><p>${state.settings.language==='ta'?'மதிப்பெண்கள் வழிகாட்டும் குறியீடுகள் மட்டுமே; மருத்துவ நோயறிதல் அல்ல.':'Scores are screening indicators, not a medical diagnosis.'}</p></div>
+    <div class="result-actions">
+      <button class="button-secondary" data-action="export-pdf-current">↓ ${t('exportPdf')}</button>
+      <button class="button-secondary" data-action="export-docx-current">↓ ${t('exportDocx')}</button>
+      <button class="button-primary" data-action="save">${t('save')}</button>
     </div>
   </div>
-  <div class="result-grid">
-    <article class="panel-card risk-card">
+  <div class="result-hero ${overall.level}">
+    <div>
       <span class="eyebrow">${t('overall')} · ${t('worstSection')}</span>
-      <div class="risk-score" data-testid="overall-risk-score">${overall.level.toUpperCase()}</div>
-      <span class="risk-level ${overall.level}">${overall.level.toUpperCase()} risk</span>
-      <div class="recommendation ${overall.level==='high'?'urgent':''}">
-        ${overall.key ? esc(RECOMMENDATIONS[overall.key][overall.level]) : 'Complete at least one screening section to see recommendations.'}
+      <div class="result-main-score">${overall.key?`${t(overall.level)}`:t('notScored')}</div>
+      <p>${overall.key?esc(t(overall.key)):''}</p>
+    </div>
+    <div class="result-ring" style="--ring:${overall.level==='high'?100:overall.level==='moderate'?65:35}%"><span>${overall.key?t(overall.level):'—'}</span></div>
+  </div>
+  <div class="result-grid">
+    <article class="panel-card">
+      <h3>${t('liveScore')}</h3>
+      <div class="result-score-list">
+      ${SECTIONS.map(s=>{
+        const sc=sectionScore(a,s.key), ans=sectionAnsweredCount(a,s.key), lvl=ans?riskFor(s,sc):null, pct=Math.round(sc/s.total*100);
+        return `<div class="result-score-row">
+          <div class="result-score-label"><span>${esc(t(s.key))}</span><b class="${lvl?'risk-'+lvl:''}">${ans?`${sc}/${s.total}`:'—'}</b></div>
+          <div class="score-bar"><i class="${lvl||''}" style="width:${pct}%"></i></div>
+          <small>${lvl?esc(t(lvl)):t('notScored')}</small>
+        </div>`;
+      }).join('')}
       </div>
     </article>
-    <article class="panel-card">
-      <h3>Section signals</h3>
-      ${SECTIONS.map(s=>{
-        const sc=sectionScore(a,s.key); const lvl=riskFor(s,sc);
-        return `<div class="summary-line"><span>${esc(t(s.key))}</span><strong class="risk-${lvl}" data-testid="score-${s.key}">${sc}/${s.total} · ${lvl.toUpperCase()}</strong></div>`;
-      }).join('')}
+    <article class="panel-card risk-card">
+      <h3>${t('recommendation')}</h3>
+      ${overall.key?`<span class="risk-level ${overall.level}">${t(overall.level)}</span><div class="recommendation ${overall.level==='high'?'urgent':''}">${esc(RECOMMENDATIONS[overall.key][overall.level])}</div>`:`<div class="recommendation">${t('notScored')}</div>`}
     </article>
   </div>
-  <div class="section-heading"><div><h2>${t('educationTitle')}</h2><p>Recommendations & educational links per category.</p></div></div>
+  <div class="section-heading"><div><h2>${t('educationTitle')}</h2><p>${state.settings.language==='ta'?'உங்கள் மதிப்பீட்டுடன் தொடர்புடைய கல்வி வளங்கள்.':'Education matched to each screening category.'}</p></div></div>
   <div class="video-grid">
     ${SECTIONS.map(s=>{
-      const sc=sectionScore(a,s.key); const lvl=riskFor(s,sc);
-      return `<article class="video-card"><div class="video-art"></div><div class="video-copy"><strong>${esc(t(s.key))}</strong><small>${esc(RECOMMENDATIONS[s.key][lvl])}</small><a href="${VIDEOS[s.key]}" target="_blank" rel="noopener" data-testid="video-link-${s.key}">Watch guidance ↗</a></div></article>`;
+      const sc=sectionScore(a,s.key); const ans=sectionAnsweredCount(a,s.key); const lvl=ans?riskFor(s,sc):'low';
+      return `<article class="video-card"><div class="video-art"><span>▶</span></div><div class="video-copy"><strong>${esc(t(s.key))}</strong><small>${esc(RECOMMENDATIONS[s.key][lvl])}</small><a href="${VIDEOS[s.key]}" target="_blank" rel="noopener">${state.settings.language==='ta'?'வழிகாட்டலை பார்க்கவும்':'Watch guidance'} ↗</a></div></article>`;
     }).join('')}
-  </div>`;
+  </div>
+  <div class="notice" style="margin-top:18px">${t('disclaimer')}</div>`;
 }
-
-// -------- Reports
 function reportsView(){
   if(!state.completed.length) return `<div class="section-heading" style="margin-top:0"><div><span class="eyebrow">ARCHIVE</span><h2>${t('finalReport')}</h2><p>Saved local prototype records.</p></div></div>${emptyBlock(t('noData'),t('noDataSub'))}`;
   return `<div class="section-heading" style="margin-top:0">
@@ -972,7 +1065,7 @@ function renderContext(){
     const a=state.assessment;
     const overall = overallRiskFor(a);
     const total = stepMap.length;
-    const progress = Math.round((state.step/total)*100);
+    const progress = Math.round((stepMap.slice(0,state.step+1).filter((_,i)=>{const ss=stepMap[i],qq=stepQuestion(ss); if(ss.kind==='demo') return a.demographics[qq.id]!=null&&a.demographics[qq.id]!==''; if(ss.kind==='symptom') return a[ss.section][ss.index]===true||a[ss.section][ss.index]===false; return a.perception[qq.id]!=null&&a.perception[qq.id]!=='';}).length/total)*100);
     const step = currentStep();
     c.innerHTML = `
       <div class="context-card">
